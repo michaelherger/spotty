@@ -1,0 +1,24 @@
+[package]
+name = "spotty"
+version = "0.1.0"
+authors = ["Michael Herger <michael@herger.net>"]
+
+[[bin]]
+name = "spotty"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+env_logger = "0.4.0"
+futures = "0.1.8"
+getopts = "0.2.14"
+log = "0.3.5"
+tokio-core = "0.1.2"
+tokio-proto = "0.1.0"
+tokio-signal = "0.1"
+
+[dependencies.librespot]
+#git = "https://github.com/michaelherger/librespot.git"
+#branch = "master"
+path = "/Users/mh/Dropbox/Squeezebox/git/librespot"
+default-features = false
