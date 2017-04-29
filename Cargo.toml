@@ -20,5 +20,5 @@ tokio-signal = "0.1"
 [dependencies.librespot]
 #git = "https://github.com/michaelherger/librespot.git"
 #branch = "master"
-path = "/Users/mh/Dropbox/Squeezebox/git/librespot"
+path = "../librespot"
 default-features = false

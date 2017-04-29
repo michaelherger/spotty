@@ -49,7 +49,7 @@ fn setup_logging(verbose: bool) {
             if verbose {
                 builder.parse("mdns=info,librespot=trace");
             } else {
-                builder.parse("mdns=warn,librespot=warn");
+                builder.parse("mdns=error,librespot=warn");
             }
             builder.init().unwrap();
         }
@@ -78,6 +78,9 @@ struct Setup {
     config: Config,
     credentials: Option<Credentials>,
     enable_discovery: bool,
+
+    single_track: Option<String>,
+    start_position: u32,
 }
 
 fn setup(args: &[String]) -> Setup {
@@ -88,6 +91,7 @@ fn setup(args: &[String]) -> Setup {
         .optopt("", "onstart", "Run PROGRAM when playback is about to begin.", "PROGRAM")
         .optopt("", "onstop", "Run PROGRAM when playback has ended.", "PROGRAM")
         .optopt("", "single-track", "Play a single track ID and exit.", "ID")
+        .optopt("", "start-position", "Position (in ms) where playback should be started. Only valid with the --single-track option.", "STARTPOSITION")
         .optflag("v", "verbose", "Enable verbose output")
         .optopt("u", "username", "Username to sign in with", "USERNAME")
         .optopt("p", "password", "Password", "PASSWORD")
@@ -143,7 +147,11 @@ fn setup(args: &[String]) -> Setup {
                                       cached_credentials);
 
     let enable_discovery = !matches.opt_present("disable-discovery");
-
+    
+    let start_position = matches.opt_str("start-position")
+    	.unwrap_or("0".to_string())
+    	.parse().unwrap_or(0);
+    
     let config = Config {
         user_agent: version::version_string(),
         name: name,
@@ -151,7 +159,6 @@ fn setup(args: &[String]) -> Setup {
         bitrate: bitrate,
         onstart: matches.opt_str("onstart"),
         onstop: matches.opt_str("onstop"),
-        single_track: matches.opt_str("single-track"),
     };
 
     let device = matches.opt_str("device");
@@ -164,6 +171,9 @@ fn setup(args: &[String]) -> Setup {
         device: device,
         enable_discovery: enable_discovery,
         mixer: mixer,
+
+        single_track: matches.opt_str("single-track"),
+        start_position: start_position * 1000,
     }
 }
 
@@ -183,6 +193,9 @@ struct Main {
     connect: Box<Future<Item=Session, Error=io::Error>>,
 
     player: Option<Player>,
+
+    single_track: Option<String>,
+    start_position: u32,
     single_track_playing: bool,
 
     shutdown: bool,
@@ -194,7 +207,10 @@ impl Main {
            cache: Option<Cache>,
            backend: fn(Option<String>) -> Box<Sink>,
            device: Option<String>,
-           mixer: fn() -> Box<Mixer>) -> Main
+           mixer: fn() -> Box<Mixer>,
+           single_track: Option<String>,
+           start_position: u32,
+    ) -> Main
     {
         Main {
             handle: handle.clone(),
@@ -210,6 +226,8 @@ impl Main {
             spirc_task: None,
 
             player: None,
+            single_track: single_track,
+            start_position: start_position,
             single_track_playing: false,
             
             shutdown: false,
@@ -299,20 +317,22 @@ impl Future for Main {
             }
             
             if let Some(ref mut player) = self.player {
-				if let Some(ref track_id) = self.config.single_track {
+				if let Some(ref track_id) = self.single_track {
 					if !self.single_track_playing {
 						self.single_track_playing = true;
-					
-				player.load(SpotifyId::from_base62(track_id), true, 0);
-				//.poll().unwrap();
-					
-					}
-					else {
-					error!("schon wieder?");
-//						progress = true;
-//						if let Some(ref spirc) = self.spirc {
-//							spirc.shutdown();
-//						}
+
+						if let Async::Ready(()) = player.load( SpotifyId::from_base62(
+										track_id.replace("spotty://", "")
+										.replace("spotify://", "")
+										.replace("track:", "")
+										.as_str()
+									), true, self.start_position ).poll().unwrap() {
+										println!("yo!!!");
+panic!("yo!");										
+progress = true;
+									}
+						
+//						rx.map(|x| exit(0) ).poll();
 					}
 				}
             }
@@ -329,9 +349,9 @@ fn main() {
     let handle = core.handle();
 
     let args: Vec<String> = std::env::args().collect();
-    let Setup { backend, config, device, cache, enable_discovery, credentials, mixer } = setup(&args);
+    let Setup { backend, config, device, cache, enable_discovery, credentials, mixer, single_track, start_position } = setup(&args);
 
-    let mut task = Main::new(handle, config.clone(), cache, backend, device, mixer);
+    let mut task = Main::new(handle, config.clone(), cache, backend, device, mixer, single_track, start_position);
     if enable_discovery {
         task.discovery();
     }
