@@ -196,7 +196,7 @@ struct Main {
 
     single_track: Option<String>,
     start_position: u32,
-    single_track_playing: bool,
+    single_track_playing: Option<futures::sync::oneshot::Receiver<()>>,
 
     shutdown: bool,
 }
@@ -228,7 +228,7 @@ impl Main {
             player: None,
             single_track: single_track,
             start_position: start_position,
-            single_track_playing: false,
+            single_track_playing: None,
             
             shutdown: false,
             signal: tokio_signal::ctrl_c(&handle).flatten_stream().boxed(),
@@ -318,21 +318,37 @@ impl Future for Main {
             
             if let Some(ref mut player) = self.player {
 				if let Some(ref track_id) = self.single_track {
-					if !self.single_track_playing {
-						self.single_track_playing = true;
+					if self.single_track_playing.is_none() {
+						self.single_track_playing = Some(player.load( SpotifyId::from_base62(
+							track_id.replace("spotty://", "")
+							.replace("spotify://", "")
+							.replace("track:", "")
+							.as_str()
+						), true, self.start_position ));
+									
+						self.single_track_playing.poll().unwrap();
+						progress = true;
+					}
+					else {
+						let result = self.single_track_playing.poll();
+										
+						if result.is_err() {
+							if !self.shutdown {
+								if let Some(ref spirc) = self.spirc {
+									spirc.shutdown();
+								}
+								self.shutdown = true;
+							} else {
+								return Ok(Async::Ready(()));
+							}
 
-						if let Async::Ready(()) = player.load( SpotifyId::from_base62(
-										track_id.replace("spotty://", "")
-										.replace("spotify://", "")
-										.replace("track:", "")
-										.as_str()
-									), true, self.start_position ).poll().unwrap() {
-										println!("yo!!!");
-panic!("yo!");										
-progress = true;
-									}
-						
-//						rx.map(|x| exit(0) ).poll();
+							progress = true;
+						}
+						else {
+							if let Async::Ready(Some(())) = result.unwrap() {
+								progress = true;
+							}
+						}
 					}
 				}
             }
