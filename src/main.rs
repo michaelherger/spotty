@@ -1,4 +1,8 @@
+// TODO: many items from tokio-core::io have been deprecated in favour of tokio-io
+#![allow(deprecated)]
+
 #[macro_use] extern crate log;
+#[cfg(debug_assertions)]
 extern crate env_logger;
 extern crate futures;
 extern crate getopts;
@@ -6,8 +10,10 @@ extern crate librespot;
 extern crate tokio_core;
 extern crate tokio_signal;
 
+#[cfg(debug_assertions)]
 use env_logger::LogBuilder;
 use futures::{Future, Async, Poll, Stream};
+#[cfg(debug_assertions)]
 use std::env;
 use std::io::{self, stderr, Write};
 use std::path::PathBuf;
@@ -20,7 +26,7 @@ use std::mem;
 use librespot::spirc::{Spirc, SpircTask};
 use librespot::authentication::{get_credentials, Credentials};
 use librespot::authentication::discovery::{discovery, DiscoveryStream};
-use librespot::audio_backend::{self, Sink, BACKENDS};
+use librespot::audio_backend;
 use librespot::cache::Cache;
 use librespot::player::Player;
 use librespot::session::{Bitrate, Config, Session};
@@ -34,6 +40,7 @@ fn usage(program: &str, opts: &getopts::Options) -> String {
     opts.usage(&brief)
 }
 
+#[cfg(debug_assertions)]
 fn setup_logging(verbose: bool) {
     let mut builder = LogBuilder::new();
     match env::var("RUST_LOG") {
@@ -56,22 +63,8 @@ fn setup_logging(verbose: bool) {
     }
 }
 
-fn list_backends() {
-    println!("Available Backends : ");
-    for (&(name, _), idx) in BACKENDS.iter().zip(0..) {
-        if idx == 0 {
-            println!("- {} (default)", name);
-        } else {
-            println!("- {}", name);
-        }
-    }
-}
-
 #[derive(Clone)]
 struct Setup {
-    backend: fn(Option<String>) -> Box<Sink>,
-    device: Option<String>,
-
     mixer: fn() -> Box<Mixer>,
 
 	name: String,
@@ -93,13 +86,13 @@ fn setup(args: &[String]) -> Setup {
         .optopt("", "onstop", "Run PROGRAM when playback has ended.", "PROGRAM")
         .optopt("", "single-track", "Play a single track ID and exit.", "ID")
         .optopt("", "start-position", "Position (in ms) where playback should be started. Only valid with the --single-track option.", "STARTPOSITION")
-        .optflag("v", "verbose", "Enable verbose output")
         .optopt("u", "username", "Username to sign in with", "USERNAME")
         .optopt("p", "password", "Password", "PASSWORD")
         .optflag("", "disable-discovery", "Disable discovery mode")
-        .optopt("", "backend", "Audio backend to use. Use '?' to list options", "BACKEND")
-        .optopt("", "device", "Audio device to use. Use '?' to list options", "DEVICE")
         .optopt("", "mixer", "Mixer to use", "MIXER");
+
+	#[cfg(debug_assertions)]
+    opts.optflag("v", "verbose", "Enable verbose output");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
@@ -109,22 +102,16 @@ fn setup(args: &[String]) -> Setup {
         }
     };
 
-    let verbose = matches.opt_present("verbose");
-    setup_logging(verbose);
+	#[cfg(debug_assertions)]
+	{
+	    let verbose = matches.opt_present("verbose");
+	    setup_logging(verbose);
+	}
 
     info!("librespot {} ({}). Built on {}.",
              version::short_sha(),
              version::commit_date(),
              version::short_now());
-
-    let backend_name = matches.opt_str("backend");
-    if backend_name == Some("?".into()) {
-        list_backends();
-        exit(0);
-    }
-
-    let backend = audio_backend::find(backend_name)
-        .expect("Invalid backend");
 
     let mixer_name = matches.opt_str("mixer");
     let mixer = mixer::find(mixer_name.as_ref())
@@ -161,15 +148,11 @@ fn setup(args: &[String]) -> Setup {
         onstop: matches.opt_str("onstop"),
     };
 
-    let device = matches.opt_str("device");
-
     Setup {
 		name: name,
-        backend: backend,
         cache: cache,
         config: config,
         credentials: credentials,
-        device: device,
         enable_discovery: enable_discovery,
         mixer: mixer,
 
@@ -182,8 +165,6 @@ struct Main {
 	name: String,
     cache: Option<Cache>,
     config: Config,
-    backend: fn(Option<String>) -> Box<Sink>,
-    device: Option<String>,
     mixer: fn() -> Box<Mixer>,
     handle: Handle,
 
@@ -208,8 +189,6 @@ impl Main {
            name: String,
            config: Config,
            cache: Option<Cache>,
-           backend: fn(Option<String>) -> Box<Sink>,
-           device: Option<String>,
            mixer: fn() -> Box<Mixer>,
            single_track: Option<String>,
            start_position: u32,
@@ -220,8 +199,6 @@ impl Main {
             name: name,
             cache: cache,
             config: config,
-            backend: backend,
-            device: device,
             mixer: mixer,
 
             connect: Box::new(futures::future::empty()),
@@ -280,13 +257,12 @@ impl Future for Main {
 
             if let Async::Ready(session) = self.connect.poll().unwrap() {
                 self.connect = Box::new(futures::future::empty());
-                let device = self.device.clone();
                 let mixer = (self.mixer)();
 
                 let audio_filter = mixer.get_audio_filter();
-                let backend = self.backend;
+				let backend = audio_backend::find(None).unwrap();
                 let player = Player::new(session.clone(), audio_filter, move || {
-                    (backend)(device)
+                    (backend)(None)
                 });
 
                 self.player = Some(player.clone());
@@ -370,9 +346,9 @@ fn main() {
     let handle = core.handle();
 
     let args: Vec<String> = std::env::args().collect();
-    let Setup { name, backend, config, device, cache, enable_discovery, credentials, mixer, single_track, start_position } = setup(&args);
+    let Setup { name, config, cache, enable_discovery, credentials, mixer, single_track, start_position } = setup(&args);
 
-    let mut task = Main::new(handle, name, config, cache, backend, device, mixer, single_track, start_position);
+    let mut task = Main::new(handle, name, config, cache, mixer, single_track, start_position);
     if enable_discovery {
         task.discovery();
     }
