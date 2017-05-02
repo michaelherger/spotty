@@ -4,8 +4,8 @@ applications to use Spotify's service, without using the official but
 closed-source libspotify. Additionally, it will provide extra features
 which are not available in the official library.
 
-This is a stripped down and slightly customized version of the plietar's
-great plietar/librespot sample executable.
+This is a stripped down and slightly customized version of [plietar's
+great librespot](https://github.com/plietar/librespot) sample executable.
 
 ## Disclaimer
 Using this code to connect to Spotify's API is probably forbidden by them.
