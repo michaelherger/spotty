@@ -18,7 +18,6 @@ tokio-proto = "0.1.0"
 tokio-signal = "0.1"
 
 [dependencies.librespot]
-#git = "https://github.com/michaelherger/librespot.git"
-#branch = "master"
-path = "../librespot"
+git = "https://github.com/michaelherger/librespot.git"
+branch = "master"
 default-features = false
