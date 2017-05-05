@@ -177,10 +177,6 @@ struct Main {
 
     player: Option<Player>,
 
-    single_track: Option<String>,
-    start_position: u32,
-    single_track_playing: Option<futures::sync::oneshot::Receiver<()>>,
-
     shutdown: bool,
 }
 
@@ -190,8 +186,6 @@ impl Main {
            config: Config,
            cache: Option<Cache>,
            mixer: fn() -> Box<Mixer>,
-           single_track: Option<String>,
-           start_position: u32,
     ) -> Main
     {
         Main {
@@ -207,9 +201,6 @@ impl Main {
             spirc_task: None,
 
             player: None,
-            single_track: single_track,
-            start_position: start_position,
-            single_track_playing: None,
             
             shutdown: false,
             signal: tokio_signal::ctrl_c(&handle).flatten_stream().boxed(),
@@ -297,43 +288,6 @@ impl Future for Main {
                 }
             }
             
-            if let Some(ref mut player) = self.player {
-				if let Some(ref track_id) = self.single_track {
-					if self.single_track_playing.is_none() {
-						self.single_track_playing = Some(player.load( SpotifyId::from_base62(
-							track_id.replace("spotty://", "")
-							.replace("spotify://", "")
-							.replace("track:", "")
-							.as_str()
-						), true, self.start_position ));
-									
-						self.single_track_playing.poll().unwrap();
-						progress = true;
-					}
-					else {
-						let result = self.single_track_playing.poll();
-										
-						if result.is_err() {
-							if !self.shutdown {
-								if let Some(ref spirc) = self.spirc {
-									spirc.shutdown();
-								}
-								self.shutdown = true;
-							} else {
-								return Ok(Async::Ready(()));
-							}
-
-							progress = true;
-						}
-						else {
-							if let Async::Ready(Some(())) = result.unwrap() {
-								progress = true;
-							}
-						}
-					}
-				}
-            }
-
             if !progress {
                 return Ok(Async::NotReady);
             }
@@ -348,14 +302,38 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let Setup { name, config, cache, enable_discovery, credentials, mixer, single_track, start_position } = setup(&args);
 
-    let mut task = Main::new(handle, name, config, cache, mixer, single_track, start_position);
-    if enable_discovery {
-        task.discovery();
-    }
-    if let Some(credentials) = credentials {
-        task.credentials(credentials);
-    }
+	if let Some(ref track_id) = single_track {
+		match credentials {
+			Some(credentials) => {
+				let backend = audio_backend::find(None).unwrap();
 
-    core.run(task).unwrap()
+				let track = SpotifyId::from_base62(
+									track_id.replace("spotty://", "")
+									.replace("spotify://", "")
+									.replace("track:", "")
+									.as_str());
+							
+				let session = core.run(Session::connect(config, credentials, None, handle)).unwrap();
+
+				let player = Player::new(session.clone(), None, move || (backend)(None));
+
+				core.run(player.load(track, true, start_position)).unwrap();
+			} 
+			None => {
+				println!("Missing credentials");
+			}
+	    }
+	}
+	else {
+		let mut task = Main::new(handle, name, config, cache, mixer);
+		if enable_discovery {
+			task.discovery();
+		}
+		if let Some(credentials) = credentials {
+			task.credentials(credentials);
+		}
+
+		core.run(task).unwrap()
+    }
 }
 
