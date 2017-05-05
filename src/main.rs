@@ -71,6 +71,7 @@ struct Setup {
     cache: Option<Cache>,
     config: Config,
     credentials: Option<Credentials>,
+    authenticate: bool,
     enable_discovery: bool,
 
     single_track: Option<String>,
@@ -88,6 +89,7 @@ fn setup(args: &[String]) -> Setup {
         .optopt("", "start-position", "Position (in ms) where playback should be started. Only valid with the --single-track option.", "STARTPOSITION")
         .optopt("u", "username", "Username to sign in with", "USERNAME")
         .optopt("p", "password", "Password", "PASSWORD")
+        .optflag("a", "authenticate", "Authenticate given username and password. Make sure you define a cache folder to store credentials.")
         .optflag("", "disable-discovery", "Disable discovery mode")
         .optopt("", "mixer", "Mixer to use", "MIXER");
 
@@ -133,6 +135,8 @@ fn setup(args: &[String]) -> Setup {
     let credentials = get_credentials(matches.opt_str("username"),
                                       matches.opt_str("password"),
                                       cached_credentials);
+                                      
+    let authenticate = matches.opt_present("authenticate");
 
     let enable_discovery = !matches.opt_present("disable-discovery");
     
@@ -153,6 +157,7 @@ fn setup(args: &[String]) -> Setup {
         cache: cache,
         config: config,
         credentials: credentials,
+        authenticate: authenticate,
         enable_discovery: enable_discovery,
         mixer: mixer,
 
@@ -300,7 +305,7 @@ fn main() {
     let handle = core.handle();
 
     let args: Vec<String> = std::env::args().collect();
-    let Setup { name, config, cache, enable_discovery, credentials, mixer, single_track, start_position } = setup(&args);
+    let Setup { name, config, cache, enable_discovery, credentials, authenticate, mixer, single_track, start_position } = setup(&args);
 
 	if let Some(ref track_id) = single_track {
 		match credentials {
@@ -323,6 +328,10 @@ fn main() {
 				println!("Missing credentials");
 			}
 	    }
+	}
+	else if authenticate {
+        core.run(Session::connect(config, credentials.unwrap(), cache.clone(), handle)).unwrap();
+		println!("Credentials stored?");
 	}
 	else {
 		let mut task = Main::new(handle, name, config, cache, mixer);
