@@ -25,6 +25,7 @@ use std::mem;
 
 use librespot::spirc::{Spirc, SpircTask};
 use librespot::authentication::{get_credentials, Credentials};
+#[cfg(not(target_os="windows"))]
 use librespot::authentication::discovery::{discovery, DiscoveryStream};
 use librespot::audio_backend;
 use librespot::cache::Cache;
@@ -138,7 +139,10 @@ fn setup(args: &[String]) -> Setup {
                                       
     let authenticate = matches.opt_present("authenticate");
 
+#[cfg(not(target_os="windows"))]
     let enable_discovery = !matches.opt_present("disable-discovery");
+#[cfg(target_os="windows")]
+    let enable_discovery = false;
     
     let start_position = matches.opt_str("start-position")
     	.unwrap_or("0".to_string())
@@ -173,7 +177,10 @@ struct Main {
     mixer: fn() -> Box<Mixer>,
     handle: Handle,
 
+#[cfg(not(target_os="windows"))]
     discovery: Option<DiscoveryStream>,
+#[cfg(target_os="windows")]
+    discovery: Option<String>,
     signal: IoStream<()>,
 
     spirc: Option<Spirc>,
@@ -183,6 +190,7 @@ struct Main {
     player: Option<Player>,
 
     shutdown: bool,
+    authenticate: bool,
 }
 
 impl Main {
@@ -191,6 +199,7 @@ impl Main {
            config: Config,
            cache: Option<Cache>,
            mixer: fn() -> Box<Mixer>,
+           authenticate: bool,
     ) -> Main
     {
         Main {
@@ -208,10 +217,12 @@ impl Main {
             player: None,
             
             shutdown: false,
+            authenticate: authenticate,
             signal: tokio_signal::ctrl_c(&handle).flatten_stream().boxed(),
         }
     }
 
+#[cfg(not(target_os="windows"))]
     fn discovery(&mut self) {
         let device_id = self.config.device_id.clone();
         let name = self.name.clone();
@@ -242,6 +253,7 @@ impl Future for Main {
         loop {
             let mut progress = false;
 
+#[cfg(not(target_os="windows"))] {
             if let Some(Async::Ready(Some(creds))) = self.discovery.as_mut().map(|d| d.poll().unwrap()) {
                 if let Some(ref spirc) = self.spirc {
                     spirc.shutdown();
@@ -250,22 +262,35 @@ impl Future for Main {
 
                 progress = true;
             }
+}
 
             if let Async::Ready(session) = self.connect.poll().unwrap() {
-                self.connect = Box::new(futures::future::empty());
-                let mixer = (self.mixer)();
+            	if self.authenticate {
+					if !self.shutdown {
+						if let Some(ref spirc) = self.spirc {
+							spirc.shutdown();
+						}
+						self.shutdown = true;
+					} else {
+						return Ok(Async::Ready(()));
+					}
+            	}
+            	else {
+					self.connect = Box::new(futures::future::empty());
+					let mixer = (self.mixer)();
 
-                let audio_filter = mixer.get_audio_filter();
-				let backend = audio_backend::find(None).unwrap();
-                let player = Player::new(session.clone(), audio_filter, move || {
-                    (backend)(None)
-                });
+					let audio_filter = mixer.get_audio_filter();
+					let backend = audio_backend::find(None).unwrap();
+					let player = Player::new(session.clone(), audio_filter, move || {
+						(backend)(None)
+					});
 
-                self.player = Some(player.clone());
+					self.player = Some(player.clone());
 
-                let (spirc, spirc_task) = Spirc::new(self.name.clone(), session, player, mixer);
-                self.spirc = Some(spirc);
-                self.spirc_task = Some(spirc_task);
+					let (spirc, spirc_task) = Spirc::new(self.name.clone(), session, player, mixer);
+					self.spirc = Some(spirc);
+					self.spirc_task = Some(spirc_task);
+				}
 
                 progress = true;
             }
@@ -329,13 +354,14 @@ fn main() {
 			}
 	    }
 	}
-	else if authenticate {
+	else if authenticate && !enable_discovery {
         core.run(Session::connect(config, credentials.unwrap(), cache.clone(), handle)).unwrap();
-		println!("Credentials stored?");
+		println!("authorized");
 	}
 	else {
-		let mut task = Main::new(handle, name, config, cache, mixer);
+		let mut task = Main::new(handle, name, config, cache, mixer, authenticate);
 		if enable_discovery {
+#[cfg(not(target_os="windows"))]
 			task.discovery();
 		}
 		if let Some(credentials) = credentials {
