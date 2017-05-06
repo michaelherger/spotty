@@ -92,6 +92,7 @@ fn setup(args: &[String]) -> Setup {
         .optopt("p", "password", "Password", "PASSWORD")
         .optflag("a", "authenticate", "Authenticate given username and password. Make sure you define a cache folder to store credentials.")
         .optflag("", "disable-discovery", "Disable discovery mode")
+        .optflag("x", "check", "Run quick internal check")
         .optopt("", "mixer", "Mixer to use", "MIXER");
 
 	#[cfg(debug_assertions)]
@@ -104,6 +105,11 @@ fn setup(args: &[String]) -> Setup {
             exit(1);
         }
     };
+    
+    if matches.opt_present("check") {
+    	println!("ok");
+    	exit(1);
+    }
 
 	#[cfg(debug_assertions)]
 	{
