@@ -152,7 +152,7 @@ fn setup(args: &[String]) -> Setup {
     
     let start_position = matches.opt_str("start-position")
     	.unwrap_or("0".to_string())
-    	.parse().unwrap_or(0);
+    	.parse().unwrap_or(0.0);
     
     let config = Config {
         user_agent: version::version_string(),
@@ -172,7 +172,7 @@ fn setup(args: &[String]) -> Setup {
         mixer: mixer,
 
         single_track: matches.opt_str("single-track"),
-        start_position: start_position * 1000,
+        start_position: (start_position * 1000.0) as u32,
     }
 }
 
