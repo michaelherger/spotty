@@ -1,6 +1,7 @@
 // TODO: many items from tokio-core::io have been deprecated in favour of tokio-io
 #![allow(deprecated)]
 
+#[cfg(debug_assertions)]
 #[macro_use] extern crate log;
 #[cfg(debug_assertions)]
 extern crate env_logger;
@@ -34,9 +35,11 @@ use librespot::session::{Bitrate, Config, Session};
 use librespot::mixer::{self, Mixer};
 use librespot::util::SpotifyId;
 
-use librespot::version;
+const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION")); 
 
 fn usage(program: &str, opts: &getopts::Options) -> String {
+   	println!("{}", VERSION.to_string());
+
     let brief = format!("Usage: {} [options]", program);
     opts.usage(&brief)
 }
@@ -107,7 +110,7 @@ fn setup(args: &[String]) -> Setup {
     };
     
     if matches.opt_present("check") {
-    	println!("ok");
+    	println!("ok {}", VERSION.to_string());
     	exit(1);
     }
 
@@ -116,11 +119,6 @@ fn setup(args: &[String]) -> Setup {
 	    let verbose = matches.opt_present("verbose");
 	    setup_logging(verbose);
 	}
-
-    info!("librespot {} ({}). Built on {}.",
-             version::short_sha(),
-             version::commit_date(),
-             version::short_now());
 
     let mixer_name = matches.opt_str("mixer");
     let mixer = mixer::find(mixer_name.as_ref())
@@ -155,7 +153,7 @@ fn setup(args: &[String]) -> Setup {
     	.parse().unwrap_or(0.0);
     
     let config = Config {
-        user_agent: version::version_string(),
+        user_agent: VERSION.to_string(),
         device_id: device_id,
         bitrate: bitrate,
         onstart: matches.opt_str("onstart"),
