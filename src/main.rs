@@ -89,6 +89,7 @@ fn setup(args: &[String]) -> Setup {
 		.reqopt("n", "name", "Device name", "NAME")
 		.optopt("", "onstart", "Run PROGRAM when playback is about to begin.", "PROGRAM")
 		.optopt("", "onstop", "Run PROGRAM when playback has ended.", "PROGRAM")
+		.optopt("", "onchange", "Run PROGRAM when playback changes (new track, seeking etc.).", "PROGRAM")
 		.optopt("", "single-track", "Play a single track ID and exit.", "ID")
 		.optopt("", "start-position", "Position (in ms) where playback should be started. Only valid with the --single-track option.", "STARTPOSITION")
 		.optopt("u", "username", "Username to sign in with", "USERNAME")
@@ -150,6 +151,7 @@ fn setup(args: &[String]) -> Setup {
 		bitrate: Bitrate::Bitrate320,
 		onstart: matches.opt_str("onstart"),
 		onstop: matches.opt_str("onstop"),
+		onchange: matches.opt_str("onchange"),
 	};
 
 	Setup {
