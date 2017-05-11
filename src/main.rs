@@ -19,7 +19,6 @@ use std::env;
 use std::io::{self, stderr, Write};
 use std::path::PathBuf;
 use std::process::exit;
-use std::str::FromStr;
 use tokio_core::reactor::{Handle, Core};
 use tokio_core::io::IoStream;
 use std::mem;
@@ -32,7 +31,7 @@ use librespot::audio_backend;
 use librespot::cache::Cache;
 use librespot::player::Player;
 use librespot::session::{Bitrate, Config, Session};
-use librespot::mixer::{self, Mixer};
+use librespot::mixer;
 use librespot::util::SpotifyId;
 
 const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION")); 
@@ -69,14 +68,16 @@ fn setup_logging(verbose: bool) {
 
 #[derive(Clone)]
 struct Setup {
-    mixer: fn() -> Box<Mixer>,
-
 	name: String,
     cache: Option<Cache>,
     config: Config,
     credentials: Option<Credentials>,
     authenticate: bool,
     enable_discovery: bool,
+    
+    get_token: bool,
+    client_id: Option<String>,
+    scope: Option<String>,
 
     single_track: Option<String>,
     start_position: u32,
@@ -86,7 +87,6 @@ fn setup(args: &[String]) -> Setup {
     let mut opts = getopts::Options::new();
     opts.optopt("c", "cache", "Path to a directory where files will be cached.", "CACHE")
         .reqopt("n", "name", "Device name", "NAME")
-        .optopt("b", "bitrate", "Bitrate (96, 160 or 320). Defaults to 160", "BITRATE")
         .optopt("", "onstart", "Run PROGRAM when playback is about to begin.", "PROGRAM")
         .optopt("", "onstop", "Run PROGRAM when playback has ended.", "PROGRAM")
         .optopt("", "single-track", "Play a single track ID and exit.", "ID")
@@ -95,8 +95,10 @@ fn setup(args: &[String]) -> Setup {
         .optopt("p", "password", "Password", "PASSWORD")
         .optflag("a", "authenticate", "Authenticate given username and password. Make sure you define a cache folder to store credentials.")
         .optflag("", "disable-discovery", "Disable discovery mode")
-        .optflag("x", "check", "Run quick internal check")
-        .optopt("", "mixer", "Mixer to use", "MIXER");
+        .optflag("t", "get-token", "Get oauth token to be used with the web API etc.")
+        .optopt("", "client-id", "A Spotify client_id to be used to get the oauth token. Required with the --get-token request.", "CLIENT_ID")
+        .optopt("", "scope", "The scopes you want to have access to with the oauth token.", "SCOPE")
+        .optflag("x", "check", "Run quick internal check");
 
 	#[cfg(debug_assertions)]
     opts.optflag("v", "verbose", "Enable verbose output");
@@ -119,14 +121,6 @@ fn setup(args: &[String]) -> Setup {
 	    let verbose = matches.opt_present("verbose");
 	    setup_logging(verbose);
 	}
-
-    let mixer_name = matches.opt_str("mixer");
-    let mixer = mixer::find(mixer_name.as_ref())
-        .expect("Invalid mixer");
-
-    let bitrate = matches.opt_str("b").as_ref()
-        .map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
-        .unwrap_or(Bitrate::Bitrate160);
 
     let name = matches.opt_str("name").unwrap();
     let device_id = librespot::session::device_id(&name);
@@ -151,11 +145,11 @@ fn setup(args: &[String]) -> Setup {
     let start_position = matches.opt_str("start-position")
     	.unwrap_or("0".to_string())
     	.parse().unwrap_or(0.0);
-    
-    let config = Config {
+    	
+	    let config = Config {
         user_agent: VERSION.to_string(),
         device_id: device_id,
-        bitrate: bitrate,
+        bitrate: Bitrate::Bitrate320,
         onstart: matches.opt_str("onstart"),
         onstop: matches.opt_str("onstop"),
     };
@@ -167,7 +161,10 @@ fn setup(args: &[String]) -> Setup {
         credentials: credentials,
         authenticate: authenticate,
         enable_discovery: enable_discovery,
-        mixer: mixer,
+        
+        get_token: matches.opt_present("get-token"),
+        client_id: matches.opt_str("client-id"),
+        scope: matches.opt_str("scope"),
 
         single_track: matches.opt_str("single-track"),
         start_position: (start_position * 1000.0) as u32,
@@ -178,7 +175,6 @@ struct Main {
 	name: String,
     cache: Option<Cache>,
     config: Config,
-    mixer: fn() -> Box<Mixer>,
     handle: Handle,
 
 #[cfg(not(target_os="windows"))]
@@ -202,7 +198,6 @@ impl Main {
            name: String,
            config: Config,
            cache: Option<Cache>,
-           mixer: fn() -> Box<Mixer>,
            authenticate: bool,
     ) -> Main
     {
@@ -211,7 +206,6 @@ impl Main {
             name: name,
             cache: cache,
             config: config,
-            mixer: mixer,
 
             connect: Box::new(futures::future::empty()),
             discovery: None,
@@ -281,7 +275,8 @@ impl Future for Main {
             	}
             	else {
 					self.connect = Box::new(futures::future::empty());
-					let mixer = (self.mixer)();
+
+				    let mixer = (mixer::find(Some("softvol")).unwrap())();
 
 					let audio_filter = mixer.get_audio_filter();
 					let backend = audio_backend::find(None).unwrap();
@@ -334,7 +329,7 @@ fn main() {
     let handle = core.handle();
 
     let args: Vec<String> = std::env::args().collect();
-    let Setup { name, config, cache, enable_discovery, credentials, authenticate, mixer, single_track, start_position } = setup(&args);
+    let Setup { name, config, cache, enable_discovery, credentials, authenticate, get_token, client_id, scope, single_track, start_position } = setup(&args);
 
 	if let Some(ref track_id) = single_track {
 		match credentials {
@@ -362,8 +357,23 @@ fn main() {
         core.run(Session::connect(config, credentials.unwrap(), cache.clone(), handle)).unwrap();
 		println!("authorized");
 	}
+	else if get_token {
+		if let Some(client_id) = client_id {
+			let session = core.run(Session::connect(config, credentials.unwrap(), cache.clone(), handle)).unwrap();
+			let scope = scope.unwrap_or("playlist-read-private,playlist-read-collaborative".to_string());
+		    let url = format!("hm://keymaster/token/authenticated?client_id={}&scope={}", client_id, scope);
+			core.run(session.mercury().get(url).map(move |response| {
+		        let data = response.payload.first().expect("Empty payload");
+		        let token = String::from_utf8(data.clone()).unwrap();
+				println!("{}", token);
+		    }).boxed()).unwrap();
+		}
+		else {
+			println!("Use --client-id to provide a CLIENT_ID");
+		}
+	}
 	else {
-		let mut task = Main::new(handle, name, config, cache, mixer, authenticate);
+		let mut task = Main::new(handle, name, config, cache, authenticate);
 		if enable_discovery {
 #[cfg(not(target_os="windows"))]
 			task.discovery();
