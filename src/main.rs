@@ -96,7 +96,7 @@ fn setup(args: &[String]) -> Setup {
 		.optflag("a", "authenticate", "Authenticate given username and password. Make sure you define a cache folder to store credentials.")
 		.optflag("", "disable-discovery", "Disable discovery mode")
 		.optflag("t", "get-token", "Get oauth token to be used with the web API etc.")
-		.optopt("", "client-id", "A Spotify client_id to be used to get the oauth token. Required with the --get-token request.", "CLIENT_ID")
+		.optopt("i", "client-id", "A Spotify client_id to be used to get the oauth token. Required with the --get-token request.", "CLIENT_ID")
 		.optopt("", "scope", "The scopes you want to have access to with the oauth token.", "SCOPE")
 		.optflag("x", "check", "Run quick internal check");
 
