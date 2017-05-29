@@ -1,6 +1,6 @@
 [package]
 name = "spotty"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Michael Herger <michael@herger.net>"]
 
 [[bin]]
