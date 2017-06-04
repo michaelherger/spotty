@@ -19,6 +19,6 @@ tokio-signal = "0.1"
 
 [dependencies.librespot]
 git = "https://github.com/michaelherger/librespot.git"
-branch = "spotty"
+branch = "change-notification"
 #path = "../librespot"
 default-features = false
