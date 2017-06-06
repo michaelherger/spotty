@@ -338,6 +338,7 @@ fn main() {
 				let track = SpotifyId::from_base62(
 									track_id.replace("spotty://", "")
 									.replace("spotify://", "")
+									.replace("spotify:", "")
 									.replace("track:", "")
 									.as_str());
 							
