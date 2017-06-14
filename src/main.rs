@@ -360,7 +360,7 @@ fn main() {
 	else if get_token {
 		if let Some(client_id) = client_id {
 			let session = core.run(Session::connect(config, credentials.unwrap(), cache.clone(), handle)).unwrap();
-			let scope = scope.unwrap_or("user-read-private,playlist-read-private,playlist-read-collaborative,playlist-modify-public,playlist-modify-private,user-follow-modify,user-follow-read,user-library-read,user-library-modify,user-top-read".to_string());
+			let scope = scope.unwrap_or("user-read-private,playlist-read-private,playlist-read-collaborative,playlist-modify-public,playlist-modify-private,user-follow-modify,user-follow-read,user-library-read,user-library-modify,user-top-read,user-read-recently-played".to_string());
 			let url = format!("hm://keymaster/token/authenticated?client_id={}&scope={}", client_id, scope);
 			core.run(session.mercury().get(url).map(move |response| {
 				let data = response.payload.first().expect("Empty payload");
