@@ -86,6 +86,8 @@ struct Setup {
 fn setup(args: &[String]) -> Setup {
 	let mut opts = getopts::Options::new();
 	opts.optopt("c", "cache", "Path to a directory where files will be cached.", "CACHE")
+		.optflag("", "enable-audio-cache", "Enable caching of the audio data.")
+		.optflag("", "disable-audio-cache", "(Only here fore compatibility with librespot - audio cache is disabled by default).")
 		.reqopt("n", "name", "Device name", "NAME")
 		.optopt("", "onstart", "Run PROGRAM when playback is about to begin.", "PROGRAM")
 		.optopt("", "onstop", "Run PROGRAM when playback has ended.", "PROGRAM")
@@ -144,12 +146,13 @@ fn setup(args: &[String]) -> Setup {
 		.unwrap_or("0".to_string())
 		.parse().unwrap_or(0.0);
 		
-		let config = Config {
+	let config = Config {
 		user_agent: VERSION.to_string(),
 		device_id: device_id,
 		bitrate: Bitrate::Bitrate320,
 		onstart: matches.opt_str("onstart"),
 		onstop: matches.opt_str("onstop"),
+		use_audio_cache: matches.opt_present("enable-audio-cache") && !matches.opt_present("disable-audio-cache"),
 	};
 
 	Setup {
@@ -342,7 +345,7 @@ fn main() {
 									.replace("track:", "")
 									.as_str());
 							
-				let session = core.run(Session::connect(config, credentials, None, handle)).unwrap();
+				let session = core.run(Session::connect(config, credentials, cache.clone(), handle)).unwrap();
 
 				let player = Player::new(session.clone(), None, move || (backend)(None));
 
