@@ -22,3 +22,7 @@ git = "https://github.com/michaelherger/librespot.git"
 branch = "spotty"
 #path = "../librespot"
 default-features = false
+
+[profile.release]
+lto = true
+panic = 'abort'
