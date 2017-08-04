@@ -1,6 +1,6 @@
 [root]
 name = "spotty"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.14 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -228,7 +228,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "librespot"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=spotty#ee75af40037bc87a0e61f1d4068bbcd873a3513d"
+source = "git+https://github.com/michaelherger/librespot.git?branch=spotty#1c3c5120a986e5e822052f1f116ce0ddc66abdba"
 dependencies = [
  "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "bit-set 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -268,7 +268,7 @@ dependencies = [
 [[package]]
 name = "librespot-protocol"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=spotty#ee75af40037bc87a0e61f1d4068bbcd873a3513d"
+source = "git+https://github.com/michaelherger/librespot.git?branch=spotty#1c3c5120a986e5e822052f1f116ce0ddc66abdba"
 dependencies = [
  "protobuf 1.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
