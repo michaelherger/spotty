@@ -17,9 +17,9 @@ tokio-core = "0.1.2"
 tokio-signal = "0.1.2"
 
 [dependencies.librespot]
-#git = "https://github.com/michaelherger/librespot.git"
-#branch = "spotty"
-path = "../librespot"
+git = "https://github.com/michaelherger/librespot.git"
+branch = "refactor-0817"
+#path = "../librespot"
 default-features = false
 
 [profile.release]
