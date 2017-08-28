@@ -1,6 +1,6 @@
 [package]
 name = "spotty"
-version = "0.6.2"
+version = "0.6.9"
 authors = ["Michael Herger <michael@herger.net>"]
 
 [[bin]]
@@ -14,13 +14,12 @@ futures = "0.1.8"
 getopts = "0.2.14"
 log = "0.3.5"
 tokio-core = "0.1.2"
-tokio-proto = "0.1.0"
-tokio-signal = "0.1"
+tokio-signal = "0.1.2"
 
 [dependencies.librespot]
-git = "https://github.com/michaelherger/librespot.git"
-branch = "spotty"
-#path = "../librespot"
+#git = "https://github.com/michaelherger/librespot.git"
+#branch = "spotty"
+path = "../librespot"
 default-features = false
 
 [profile.release]
