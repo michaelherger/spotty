@@ -1,6 +1,6 @@
 [package]
 name = "spotty"
-version = "0.5.3"
+version = "0.6.2"
 authors = ["Michael Herger <michael@herger.net>"]
 
 [[bin]]
@@ -22,3 +22,7 @@ git = "https://github.com/michaelherger/librespot.git"
 branch = "change-notification"
 #path = "../librespot"
 default-features = false
+
+[profile.release]
+lto = true
+panic = 'abort'
