@@ -19,6 +19,7 @@ use std::env;
 use std::io::{self, stderr, Write};
 use std::path::PathBuf;
 use std::process::exit;
+use std::str::FromStr;
 use tokio_core::reactor::{Handle, Core};
 use tokio_core::io::IoStream;
 use std::mem;
@@ -89,6 +90,7 @@ fn setup(args: &[String]) -> Setup {
 		.optflag("", "enable-audio-cache", "Enable caching of the audio data.")
 		.optflag("", "disable-audio-cache", "(Only here fore compatibility with librespot - audio cache is disabled by default).")
 		.reqopt("n", "name", "Device name", "NAME")
+        .optopt("b", "bitrate", "Bitrate (96, 160 or 320). Defaults to 160", "BITRATE")
 		.optopt("", "onstart", "Run PROGRAM when playback is about to begin.", "PROGRAM")
 		.optopt("", "onstop", "Run PROGRAM when playback has ended.", "PROGRAM")
 		.optopt("", "onchange", "Run PROGRAM when playback changes (new track, seeking etc.).", "PROGRAM")
@@ -125,6 +127,10 @@ fn setup(args: &[String]) -> Setup {
 		setup_logging(verbose);
 	}
 
+    let bitrate = matches.opt_str("b").as_ref()
+        .map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
+        .unwrap_or(Bitrate::Bitrate320);
+
 	let name = matches.opt_str("name").unwrap();
 	let device_id = librespot::session::device_id(&name);
 	
@@ -152,7 +158,7 @@ fn setup(args: &[String]) -> Setup {
 	let config = Config {
 		user_agent: VERSION.to_string(),
 		device_id: device_id,
-		bitrate: Bitrate::Bitrate320,
+		bitrate: bitrate,
 		onstart: matches.opt_str("onstart"),
 		onstop: matches.opt_str("onstop"),
 		onchange: matches.opt_str("onchange"),
