@@ -90,7 +90,7 @@ fn setup(args: &[String]) -> Setup {
 		.optflag("", "enable-audio-cache", "Enable caching of the audio data.")
 		.optflag("", "disable-audio-cache", "(Only here fore compatibility with librespot - audio cache is disabled by default).")
 		.reqopt("n", "name", "Device name", "NAME")
-        .optopt("b", "bitrate", "Bitrate (96, 160 or 320). Defaults to 160", "BITRATE")
+        .optopt("b", "bitrate", "Bitrate (96, 160 or 320). Defaults to 320.", "BITRATE")
 		.optopt("", "onstart", "Run PROGRAM when playback is about to begin.", "PROGRAM")
 		.optopt("", "onstop", "Run PROGRAM when playback has ended.", "PROGRAM")
 		.optopt("", "onchange", "Run PROGRAM when playback changes (new track, seeking etc.).", "PROGRAM")
