@@ -24,16 +24,18 @@ use tokio_core::reactor::{Handle, Core};
 use tokio_core::io::IoStream;
 use std::mem;
 
-use librespot::spirc::{Spirc, SpircTask};
 use librespot::core::authentication::{get_credentials, Credentials};
-#[cfg(not(target_os="windows"))]
-use librespot::discovery::{discovery, DiscoveryStream};
-use librespot::audio_backend;
 use librespot::core::cache::Cache;
 use librespot::core::config::{Bitrate, DeviceType, PlayerConfig, SessionConfig, ConnectConfig};
-use librespot::player::Player;
 use librespot::core::session::Session;
-use librespot::mixer;
+
+use librespot::audio_backend::{self};
+#[cfg(not(target_os="windows"))]
+use librespot::discovery::{discovery, DiscoveryStream};
+use librespot::mixer::{self};
+use librespot::player::Player;
+use librespot::spirc::{Spirc, SpircTask};
+
 use librespot::core::util::SpotifyId;
 
 const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION")); 
@@ -75,8 +77,9 @@ struct Setup {
     session_config: SessionConfig,
     connect_config: ConnectConfig,
 	credentials: Option<Credentials>,
-	authenticate: bool,
 	enable_discovery: bool,
+
+	authenticate: bool,
 	
 	get_token: bool,
 	client_id: Option<String>,
@@ -129,10 +132,6 @@ fn setup(args: &[String]) -> Setup {
 		setup_logging(verbose);
 	}
 
-    let bitrate = matches.opt_str("b").as_ref()
-        .map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
-        .unwrap_or(Bitrate::Bitrate320);
-
 	let name = matches.opt_str("name").unwrap();
 	
 	let use_audio_cache = matches.opt_present("enable-audio-cache") && !matches.opt_present("disable-audio-cache");
@@ -172,6 +171,10 @@ fn setup(args: &[String]) -> Setup {
 	};
 
 	let player_config = {
+        let bitrate = matches.opt_str("b").as_ref()
+   	        .map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
+       	    .unwrap_or(Bitrate::Bitrate320);
+
 		PlayerConfig {
 			bitrate: bitrate,
 			onstart: matches.opt_str("onstart"),
@@ -183,7 +186,7 @@ fn setup(args: &[String]) -> Setup {
 	let connect_config = {
 		ConnectConfig {
 			name: name,
-			device_type: DeviceType::default(),
+			device_type: DeviceType::Speaker,
 		}
 	};
 
@@ -207,8 +210,8 @@ fn setup(args: &[String]) -> Setup {
 
 struct Main {
 	cache: Option<Cache>,
-	session_config: SessionConfig,
 	player_config: PlayerConfig,
+	session_config: SessionConfig,
 	connect_config: ConnectConfig,
 	handle: Handle,
 
@@ -221,7 +224,6 @@ struct Main {
 	spirc: Option<Spirc>,
 	spirc_task: Option<SpircTask>,
 	connect: Box<Future<Item=Session, Error=io::Error>>,
-	connect_state: Async<librespot::core::session::Session>,
 
 	player: Option<Player>,
 
@@ -239,7 +241,6 @@ impl Main {
 			connect_config: setup.connect_config,
 
 			connect: Box::new(futures::future::empty()),
-			connect_state: Async::NotReady,
 			discovery: None,
 			spirc: None,
 			spirc_task: None,
@@ -299,11 +300,7 @@ impl Future for Main {
 			}
 }
 
-			if let Async::NotReady = self.connect_state {
-				self.connect_state = self.connect.poll().unwrap();
-			}
-			
-			if let Async::Ready(ref session) = self.connect_state {
+			if let Async::Ready(ref mut session) = self.connect.poll().unwrap() {
 				if self.authenticate {
 					if !self.shutdown {
 						if let Some(ref spirc) = self.spirc {
