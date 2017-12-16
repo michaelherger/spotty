@@ -1,6 +1,6 @@
 [package]
 name = "spotty"
-version = "0.7.0"
+version = "0.8.1"
 authors = ["Michael Herger <michael@herger.net>"]
 
 [[bin]]
@@ -19,7 +19,7 @@ tokio-signal = "0.1"
 
 [dependencies.librespot]
 git = "https://github.com/michaelherger/librespot.git"
-branch = "spotty"
+branch = "connectv2"
 #path = "../librespot"
 default-features = false
 
