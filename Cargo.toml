@@ -21,6 +21,8 @@ git = "https://github.com/michaelherger/librespot.git"
 branch = "refactor-0817"
 #path = "../librespot"
 default-features = false
+# enable the following for macOS <= 10.9 compatibility
+#features = ["with-tremor","with-lewton"]
 
 [profile.release]
 lto = true
