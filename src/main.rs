@@ -38,7 +38,12 @@ use librespot::spirc::{Spirc, SpircTask};
 
 use librespot::core::util::SpotifyId;
 
-const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION")); 
+const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
+
+#[cfg(target_os="windows")]
+const NULLDEVICE: &'static str = "NUL";
+#[cfg(not(target_os="windows"))]
+const NULLDEVICE: &'static str = "/dev/null";
 
 fn usage(program: &str, opts: &getopts::Options) -> String {
 	println!("{}", VERSION.to_string());
@@ -80,7 +85,7 @@ struct Setup {
 	enable_discovery: bool,
 
 	authenticate: bool,
-	
+
 	get_token: bool,
 	client_id: Option<String>,
 	scope: Option<String>,
@@ -122,7 +127,7 @@ fn setup(args: &[String]) -> Setup {
 			exit(1);
 		}
 	};
-	
+
 	if matches.opt_present("check") {
 		println!("ok {}", VERSION.to_string());
 		exit(1);
@@ -135,7 +140,7 @@ fn setup(args: &[String]) -> Setup {
 	}
 
 	let name = matches.opt_str("name").unwrap();
-	
+
 	let use_audio_cache = matches.opt_present("enable-audio-cache") && !matches.opt_present("disable-audio-cache");
 
 	let cache = matches.opt_str("c").map(|cache_location| {
@@ -144,7 +149,7 @@ fn setup(args: &[String]) -> Setup {
 
 	let credentials = {
 		let cached_credentials = cache.as_ref().and_then(Cache::credentials);
-	
+
 		get_credentials(
 			matches.opt_str("username"),
 			matches.opt_str("password"),
@@ -158,14 +163,14 @@ fn setup(args: &[String]) -> Setup {
 	let enable_discovery = !matches.opt_present("disable-discovery");
 #[cfg(target_os="windows")]
 	let enable_discovery = false;
-	
+
 	let start_position = matches.opt_str("start-position")
 		.unwrap_or("0".to_string())
 		.parse().unwrap_or(0.0);
 
 	let session_config = {
 		let device_id = librespot::core::session::device_id(&name);
-		
+
 		SessionConfig {
 			user_agent: VERSION.to_string(),
 			device_id: device_id
@@ -202,7 +207,7 @@ fn setup(args: &[String]) -> Setup {
 		credentials: credentials,
 		authenticate: authenticate,
 		enable_discovery: enable_discovery,
-		
+
 		get_token: matches.opt_present("get-token"),
 		client_id: matches.opt_str("client-id"),
 		scope: matches.opt_str("scope"),
@@ -250,16 +255,16 @@ impl Main {
 			spirc_task: None,
 
 			player: None,
-			
+
 			shutdown: false,
 			authenticate: setup.authenticate,
 			signal: tokio_signal::ctrl_c(&handle).flatten_stream().boxed()
 		};
-		
+
 		if setup.enable_discovery {
 			let config = task.connect_config.clone();
 			let device_id = task.session_config.device_id.clone();
-			
+
 			task.discovery = Some(discovery(&handle, config, device_id).unwrap());
 		}
 
@@ -325,7 +330,7 @@ impl Future for Main {
 					let audio_filter = mixer.get_audio_filter();
 					let backend = audio_backend::find(None).unwrap();
 					let player = Player::new(player_config, session.clone(), audio_filter, move || {
-						(backend)(None)
+						(backend)(Some(NULLDEVICE.to_string()))
 					});
 
 					self.player = Some(player.clone());
@@ -360,7 +365,7 @@ impl Future for Main {
 					}
 				}
 			}
-			
+
 			if !progress {
 				return Ok(Async::NotReady);
 			}
@@ -386,13 +391,13 @@ fn main() {
 									.replace("spotify:", "")
 									.replace("track:", "")
 									.as_str());
-							
+
 				let session = core.run(Session::connect(session_config.clone(), credentials, cache.clone(), handle)).unwrap();
 
 				let player = Player::new(player_config, session.clone(), None, move || (backend)(None));
 
 				core.run(player.load(track, true, start_position)).unwrap();
-			} 
+			}
 			None => {
 				println!("Missing credentials");
 			}
@@ -407,13 +412,13 @@ fn main() {
 			let session = core.run(Session::connect(session_config, credentials.unwrap(), cache.clone(), handle)).unwrap();
 			let scope = scope.unwrap_or("user-read-private,playlist-read-private,playlist-read-collaborative,playlist-modify-public,playlist-modify-private,user-follow-modify,user-follow-read,user-library-read,user-library-modify,user-top-read,user-read-recently-played".to_string());
 			let url = format!("hm://keymaster/token/authenticated?client_id={}&scope={}", client_id, scope);
-			
+
 			let result = core.run(session.mercury().get(url).map(move |response| {
 				let data = response.payload.first().expect("Empty payload");
 				let token = String::from_utf8(data.clone()).unwrap();
 				println!("{}", token);
 			}).boxed());
-			
+
 			match result {
 				Ok(_) => (),
 				Err(e) => println!("error getting token {:?}", e),
