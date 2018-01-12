@@ -37,6 +37,11 @@ use librespot::util::SpotifyId;
 
 const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION")); 
 
+#[cfg(target_os="windows")]
+const NULLDEVICE: &'static str = "NUL";
+#[cfg(not(target_os="windows"))]
+const NULLDEVICE: &'static str = "/dev/null";
+
 fn usage(program: &str, opts: &getopts::Options) -> String {
 	println!("{}", VERSION.to_string());
 
@@ -296,7 +301,7 @@ impl Future for Main {
 					let audio_filter = mixer.get_audio_filter();
 					let backend = audio_backend::find(None).unwrap();
 					let player = Player::new(session.clone(), audio_filter, move || {
-						(backend)(None)
+						(backend)(Some(NULLDEVICE.to_string()))
 					});
 
 					self.player = Some(player.clone());
