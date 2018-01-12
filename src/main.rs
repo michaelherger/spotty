@@ -35,7 +35,7 @@ use librespot::session::{Bitrate, Config, Session};
 use librespot::mixer;
 use librespot::util::SpotifyId;
 
-const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION")); 
+const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
 
 #[cfg(target_os="windows")]
 const NULLDEVICE: &'static str = "NUL";
@@ -80,7 +80,7 @@ struct Setup {
 	credentials: Option<Credentials>,
 	authenticate: bool,
 	enable_discovery: bool,
-	
+
 	get_token: bool,
 	client_id: Option<String>,
 	scope: Option<String>,
@@ -122,7 +122,7 @@ fn setup(args: &[String]) -> Setup {
 			exit(1);
 		}
 	};
-	
+
 	if matches.opt_present("check") {
 		println!("ok {}", VERSION.to_string());
 		exit(1);
@@ -140,7 +140,7 @@ fn setup(args: &[String]) -> Setup {
 
 	let name = matches.opt_str("name").unwrap();
 	let device_id = librespot::session::device_id(&name);
-	
+
 	let use_audio_cache = matches.opt_present("enable-audio-cache") && !matches.opt_present("disable-audio-cache");
 
 	let cache = matches.opt_str("c").map(|cache_location| {
@@ -157,11 +157,11 @@ fn setup(args: &[String]) -> Setup {
 	let enable_discovery = !matches.opt_present("disable-discovery");
 #[cfg(target_os="windows")]
 	let enable_discovery = false;
-	
+
 	let start_position = matches.opt_str("start-position")
 		.unwrap_or("0".to_string())
 		.parse().unwrap_or(0.0);
-		
+
 	let config = Config {
 		user_agent: VERSION.to_string(),
 		device_id: device_id,
@@ -180,7 +180,7 @@ fn setup(args: &[String]) -> Setup {
 		credentials: credentials,
 		authenticate: authenticate,
 		enable_discovery: enable_discovery,
-		
+
 		get_token: matches.opt_present("get-token"),
 		client_id: matches.opt_str("client-id"),
 		scope: matches.opt_str("scope"),
@@ -233,7 +233,7 @@ impl Main {
 			spirc_task: None,
 
 			player: None,
-			
+
 			shutdown: false,
 			authenticate: authenticate,
 			signal: tokio_signal::ctrl_c(&handle).flatten_stream().boxed(),
@@ -336,7 +336,7 @@ impl Future for Main {
 					}
 				}
 			}
-			
+
 			if !progress {
 				return Ok(Async::NotReady);
 			}
@@ -362,13 +362,13 @@ fn main() {
 									.replace("spotify:", "")
 									.replace("track:", "")
 									.as_str());
-							
+
 				let session = core.run(Session::connect(config, credentials, cache.clone(), handle)).unwrap();
 
 				let player = Player::new(session.clone(), None, move || (backend)(None));
 
 				core.run(player.load(track, true, start_position)).unwrap();
-			} 
+			}
 			None => {
 				println!("Missing credentials");
 			}
