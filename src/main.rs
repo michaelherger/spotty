@@ -205,6 +205,7 @@ struct Main {
 	spirc: Option<Spirc>,
 	spirc_task: Option<SpircTask>,
 	connect: Box<Future<Item=Session, Error=io::Error>>,
+	connect_state: Async<librespot::session::Session>,
 
 	player: Option<Player>,
 
@@ -218,7 +219,7 @@ impl Main {
 		name: String,
 		config: Config,
 		cache: Option<Cache>,
-		authenticate: bool,
+		authenticate: bool
 	) -> Main
 	{
 		Main {
@@ -228,6 +229,7 @@ impl Main {
 			config: config,
 
 			connect: Box::new(futures::future::empty()),
+			connect_state: Async::NotReady, 
 			discovery: None,
 			spirc: None,
 			spirc_task: None,
@@ -281,8 +283,10 @@ impl Future for Main {
 				progress = true;
 			}
 }
-
-			if let Async::Ready(session) = self.connect.poll().unwrap() {
+			if let Async::NotReady = self.connect_state {
+				 self.connect_state = self.connect.poll().unwrap();
+			}
+			if let Async::Ready(ref session) = self.connect_state {
 				if self.authenticate {
 					if !self.shutdown {
 						if let Some(ref spirc) = self.spirc {
@@ -306,7 +310,7 @@ impl Future for Main {
 
 					self.player = Some(player.clone());
 
-					let (spirc, spirc_task) = Spirc::new(self.name.clone(), session, player, mixer);
+					let (spirc, spirc_task) = Spirc::new(self.name.clone(), session.clone(), player, mixer);
 					self.spirc = Some(spirc);
 					self.spirc_task = Some(spirc_task);
 				}
@@ -383,11 +387,15 @@ fn main() {
 			let session = core.run(Session::connect(config, credentials.unwrap(), cache.clone(), handle)).unwrap();
 			let scope = scope.unwrap_or("user-read-private,playlist-read-private,playlist-read-collaborative,playlist-modify-public,playlist-modify-private,user-follow-modify,user-follow-read,user-library-read,user-library-modify,user-top-read,user-read-recently-played".to_string());
 			let url = format!("hm://keymaster/token/authenticated?client_id={}&scope={}", client_id, scope);
-			core.run(session.mercury().get(url).map(move |response| {
+			let result = core.run(session.mercury().get(url).map(move |response| {
 				let data = response.payload.first().expect("Empty payload");
 				let token = String::from_utf8(data.clone()).unwrap();
 				println!("{}", token);
-			}).boxed()).unwrap();
+			}).boxed());
+			match result {
+				Ok(_) => (),
+				Err(e) => println!("error getting token {:?}", e),
+			}
 		}
 		else {
 			println!("Use --client-id to provide a CLIENT_ID");
