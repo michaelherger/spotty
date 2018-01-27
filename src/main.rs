@@ -206,8 +206,6 @@ struct Main {
 	spirc_task: Option<SpircTask>,
 	connect: Box<Future<Item=Session, Error=io::Error>>,
 
-	player: Option<Player>,
-
 	shutdown: bool,
 	authenticate: bool,
 }
@@ -231,8 +229,6 @@ impl Main {
 			discovery: None,
 			spirc: None,
 			spirc_task: None,
-
-			player: None,
 
 			shutdown: false,
 			authenticate: authenticate,
@@ -303,8 +299,6 @@ impl Future for Main {
 					let player = Player::new(session.clone(), audio_filter, move || {
 						(backend)(Some(NULLDEVICE.to_string()))
 					});
-
-					self.player = Some(player.clone());
 
 					let (spirc, spirc_task) = Spirc::new(self.name.clone(), session, player, mixer);
 					self.spirc = Some(spirc);
