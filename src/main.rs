@@ -1,6 +1,3 @@
-// TODO: many items from tokio-core::io have been deprecated in favour of tokio-io
-#![allow(deprecated)]
-
 #[cfg(debug_assertions)]
 #[macro_use] extern crate log;
 #[cfg(debug_assertions)]
@@ -9,6 +6,7 @@ extern crate futures;
 extern crate getopts;
 extern crate librespot;
 extern crate tokio_core;
+extern crate tokio_io;
 extern crate tokio_signal;
 
 #[cfg(debug_assertions)]
@@ -21,7 +19,7 @@ use std::path::PathBuf;
 use std::process::exit;
 use std::str::FromStr;
 use tokio_core::reactor::{Handle, Core};
-use tokio_core::io::IoStream;
+use tokio_io::IoStream;
 use std::mem;
 
 use librespot::core::authentication::{get_credentials, Credentials};
@@ -196,6 +194,7 @@ fn setup(args: &[String]) -> Setup {
 		ConnectConfig {
 			name: name,
 			device_type: DeviceType::Speaker,
+			volume: 0x8000 as i32,
 		}
 	};
 
@@ -254,7 +253,7 @@ impl Main {
 
 			shutdown: false,
 			authenticate: setup.authenticate,
-			signal: tokio_signal::ctrl_c(&handle).flatten_stream().boxed()
+			signal: Box::new(tokio_signal::ctrl_c(&handle).flatten_stream()),
 		};
 
 		if setup.enable_discovery {
@@ -407,11 +406,11 @@ fn main() {
 			let scope = scope.unwrap_or("user-read-private,playlist-read-private,playlist-read-collaborative,playlist-modify-public,playlist-modify-private,user-follow-modify,user-follow-read,user-library-read,user-library-modify,user-top-read,user-read-recently-played".to_string());
 			let url = format!("hm://keymaster/token/authenticated?client_id={}&scope={}", client_id, scope);
 
-			let result = core.run(session.mercury().get(url).map(move |response| {
+			let result = core.run(Box::new(session.mercury().get(url).map(move |response| {
 				let data = response.payload.first().expect("Empty payload");
 				let token = String::from_utf8(data.clone()).unwrap();
 				println!("{}", token);
-			}).boxed());
+			})));
 
 			match result {
 				Ok(_) => (),
