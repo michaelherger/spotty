@@ -256,12 +256,14 @@ impl Main {
 			signal: Box::new(tokio_signal::ctrl_c(&handle).flatten_stream()),
 		};
 
+#[cfg(not(target_os="windows"))] {
 		if setup.enable_discovery {
 			let config = task.connect_config.clone();
 			let device_id = task.session_config.device_id.clone();
 
 			task.discovery = Some(discovery(&handle, config, device_id).unwrap());
 		}
+}
 
 		if let Some(credentials) = setup.credentials {
 			task.credentials(credentials);

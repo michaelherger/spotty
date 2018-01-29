@@ -239,7 +239,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "librespot"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#be476472917aafa842de4ff11e51e0e107bd2f25"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#925bd69e5294d9fff6f9597b827d3d02dd4fdf01"
 dependencies = [
  "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -271,7 +271,7 @@ dependencies = [
 [[package]]
 name = "librespot-audio"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#be476472917aafa842de4ff11e51e0e107bd2f25"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#925bd69e5294d9fff6f9597b827d3d02dd4fdf01"
 dependencies = [
  "bit-set 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -288,7 +288,7 @@ dependencies = [
 [[package]]
 name = "librespot-core"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#be476472917aafa842de4ff11e51e0e107bd2f25"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#925bd69e5294d9fff6f9597b827d3d02dd4fdf01"
 dependencies = [
  "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -320,7 +320,7 @@ dependencies = [
 [[package]]
 name = "librespot-metadata"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#be476472917aafa842de4ff11e51e0e107bd2f25"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#925bd69e5294d9fff6f9597b827d3d02dd4fdf01"
 dependencies = [
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -333,7 +333,7 @@ dependencies = [
 [[package]]
 name = "librespot-protocol"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#be476472917aafa842de4ff11e51e0e107bd2f25"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#925bd69e5294d9fff6f9597b827d3d02dd4fdf01"
 dependencies = [
  "protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
