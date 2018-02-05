@@ -134,9 +134,9 @@ fn setup(args: &[String]) -> Setup {
 		setup_logging(verbose);
 	}
 
-    let bitrate = matches.opt_str("b").as_ref()
-        .map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
-        .unwrap_or(Bitrate::Bitrate320);
+	let bitrate = matches.opt_str("b").as_ref()
+		.map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
+		.unwrap_or(Bitrate::Bitrate320);
 
 	let name = matches.opt_str("name").unwrap();
 	let device_id = librespot::session::device_id(&name);
@@ -162,6 +162,9 @@ fn setup(args: &[String]) -> Setup {
 		.unwrap_or("0".to_string())
 		.parse().unwrap_or(0.0);
 
+	let client_id = matches.opt_str("client-id")
+		.unwrap_or(format!("{}", include_str!("client_id.txt")));
+
 	let config = Config {
 		user_agent: VERSION.to_string(),
 		device_id: device_id,
@@ -171,7 +174,7 @@ fn setup(args: &[String]) -> Setup {
 		onchange: matches.opt_str("onchange"),
 		mac: matches.opt_str("player-mac"),
 		lms: matches.opt_str("lms"),
-  };
+	};
 
 	Setup {
 		name: name,
@@ -182,7 +185,7 @@ fn setup(args: &[String]) -> Setup {
 		enable_discovery: enable_discovery,
 
 		get_token: matches.opt_present("get-token"),
-		client_id: matches.opt_str("client-id"),
+		client_id: if client_id.as_str().len() == 0 { None } else { Some(client_id) },
 		scope: matches.opt_str("scope"),
 
 		single_track: matches.opt_str("single-track"),
