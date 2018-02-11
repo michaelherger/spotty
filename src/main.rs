@@ -27,11 +27,11 @@ use librespot::core::cache::Cache;
 use librespot::core::config::{Bitrate, DeviceType, PlayerConfig, SessionConfig, ConnectConfig};
 use librespot::core::session::Session;
 
-use librespot::audio_backend::{self};
 #[cfg(not(target_os="windows"))]
-use librespot::discovery::{discovery, DiscoveryStream};
-use librespot::mixer::{self};
-use librespot::player::Player;
+use librespot::discovery::discovery::{discovery, DiscoveryStream};
+use librespot::playback::audio_backend::{self};
+use librespot::playback::mixer::{self};
+use librespot::playback::player::Player;
 use librespot::spirc::{Spirc, SpircTask};
 
 use librespot::core::util::SpotifyId;
@@ -261,7 +261,7 @@ impl Main {
 			let config = task.connect_config.clone();
 			let device_id = task.session_config.device_id.clone();
 
-			task.discovery = Some(discovery(&handle, config, device_id).unwrap());
+			task.discovery = Some(discovery(&handle, config, device_id, 0).unwrap());
 		}
 }
 
