@@ -26,8 +26,6 @@ use librespot::core::authentication::{get_credentials, Credentials};
 use librespot::core::cache::Cache;
 use librespot::core::config::{Bitrate, DeviceType, PlayerConfig, SessionConfig, ConnectConfig};
 use librespot::core::session::Session;
-
-#[cfg(not(target_os="windows"))]
 use librespot::discovery::discovery::{discovery, DiscoveryStream};
 use librespot::playback::audio_backend::{self};
 use librespot::playback::mixer::{self};
@@ -76,9 +74,9 @@ fn setup_logging(verbose: bool) {
 #[derive(Clone)]
 struct Setup {
 	cache: Option<Cache>,
-    player_config: PlayerConfig,
-    session_config: SessionConfig,
-    connect_config: ConnectConfig,
+	player_config: PlayerConfig,
+	session_config: SessionConfig,
+	connect_config: ConnectConfig,
 	credentials: Option<Credentials>,
 	enable_discovery: bool,
 
@@ -98,7 +96,7 @@ fn setup(args: &[String]) -> Setup {
 		.optflag("", "enable-audio-cache", "Enable caching of the audio data.")
 		.optflag("", "disable-audio-cache", "(Only here fore compatibility with librespot - audio cache is disabled by default).")
 		.reqopt("n", "name", "Device name", "NAME")
-        .optopt("b", "bitrate", "Bitrate (96, 160 or 320). Defaults to 320.", "BITRATE")
+		.optopt("b", "bitrate", "Bitrate (96, 160 or 320). Defaults to 320.", "BITRATE")
 		.optopt("", "onstart", "Run PROGRAM when playback is about to begin.", "PROGRAM")
 		.optopt("", "onstop", "Run PROGRAM when playback has ended.", "PROGRAM")
 		.optopt("", "onchange", "Run PROGRAM when playback changes (new track, seeking etc.).", "PROGRAM")
@@ -157,10 +155,7 @@ fn setup(args: &[String]) -> Setup {
 
 	let authenticate = matches.opt_present("authenticate");
 
-#[cfg(not(target_os="windows"))]
 	let enable_discovery = !matches.opt_present("disable-discovery");
-#[cfg(target_os="windows")]
-	let enable_discovery = false;
 
 	let start_position = matches.opt_str("start-position")
 		.unwrap_or("0".to_string())
@@ -176,9 +171,9 @@ fn setup(args: &[String]) -> Setup {
 	};
 
 	let player_config = {
-        let bitrate = matches.opt_str("b").as_ref()
-   	        .map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
-       	    .unwrap_or(Bitrate::Bitrate320);
+		let bitrate = matches.opt_str("b").as_ref()
+				.map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
+				.unwrap_or(Bitrate::Bitrate320);
 
 		PlayerConfig {
 			bitrate: bitrate,
@@ -198,6 +193,9 @@ fn setup(args: &[String]) -> Setup {
 		}
 	};
 
+	let client_id = matches.opt_str("client-id")
+		.unwrap_or(format!("{}", include_str!("client_id.txt")));
+
 	Setup {
 		cache: cache,
 		session_config: session_config,
@@ -208,7 +206,7 @@ fn setup(args: &[String]) -> Setup {
 		enable_discovery: enable_discovery,
 
 		get_token: matches.opt_present("get-token"),
-		client_id: matches.opt_str("client-id"),
+		client_id: if client_id.as_str().len() == 0 { None } else { Some(client_id) },
 		scope: matches.opt_str("scope"),
 
 		single_track: matches.opt_str("single-track"),
@@ -223,10 +221,7 @@ struct Main {
 	connect_config: ConnectConfig,
 	handle: Handle,
 
-#[cfg(not(target_os="windows"))]
 	discovery: Option<DiscoveryStream>,
-#[cfg(target_os="windows")]
-	discovery: Option<String>,
 	signal: IoStream<()>,
 
 	spirc: Option<Spirc>,
@@ -256,14 +251,12 @@ impl Main {
 			signal: Box::new(tokio_signal::ctrl_c(&handle).flatten_stream()),
 		};
 
-#[cfg(not(target_os="windows"))] {
 		if setup.enable_discovery {
 			let config = task.connect_config.clone();
 			let device_id = task.session_config.device_id.clone();
 
 			task.discovery = Some(discovery(&handle, config, device_id, 0).unwrap());
 		}
-}
 
 		if let Some(credentials) = setup.credentials {
 			task.credentials(credentials);
@@ -295,7 +288,6 @@ impl Future for Main {
 		loop {
 			let mut progress = false;
 
-#[cfg(not(target_os="windows"))] {
 			if let Some(Async::Ready(Some(creds))) = self.discovery.as_mut().map(|d| d.poll().unwrap()) {
 				if let Some(ref spirc) = self.spirc {
 					spirc.shutdown();
@@ -304,7 +296,6 @@ impl Future for Main {
 
 				progress = true;
 			}
-}
 
 			if let Async::Ready(ref mut session) = self.connect.poll().unwrap() {
 				if self.authenticate {
