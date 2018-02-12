@@ -19,7 +19,7 @@ tokio-signal = "0.1"
 
 [dependencies.librespot]
 git = "https://github.com/michaelherger/librespot.git"
-branch = "win-mdns"
+branch = "spotty"
 #path = "../librespot"
 default-features = false
 

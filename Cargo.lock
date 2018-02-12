@@ -223,7 +223,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "librespot"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=win-mdns#a60f8c5188529fe8f5bcfdc90688150b96525e01"
+source = "git+https://github.com/michaelherger/librespot.git?branch=spotty#0ed8f29edc92c2aed1bdd77c93acdb78dfc604cd"
 dependencies = [
  "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "bit-set 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -234,10 +234,10 @@ dependencies = [
  "getopts 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.11.0 (git+https://github.com/hyperium/hyper)",
  "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=win-mdns)",
+ "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=spotty)",
  "linear-map 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "mdns 0.2.0 (git+https://github.com/michaelherger/rust-mdns?branch=windows)",
+ "mdns 0.2.0 (git+https://github.com/plietar/rust-mdns)",
  "num-bigint 0.1.39 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-integer 0.1.34 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.1.39 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -263,7 +263,7 @@ dependencies = [
 [[package]]
 name = "librespot-protocol"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=win-mdns#a60f8c5188529fe8f5bcfdc90688150b96525e01"
+source = "git+https://github.com/michaelherger/librespot.git?branch=spotty#0ed8f29edc92c2aed1bdd77c93acdb78dfc604cd"
 dependencies = [
  "protobuf 1.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -286,7 +286,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "mdns"
 version = "0.2.0"
-source = "git+https://github.com/michaelherger/rust-mdns?branch=windows#6a0154b214ce43fc8a2fe6382ff9a9b45b61db6c"
+source = "git+https://github.com/plietar/rust-mdns#0abbc9bc4a0cf998fc51429d5e1941d14c18ad69"
 dependencies = [
  "byteorder 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "dns-parser 0.3.2 (git+https://github.com/plietar/dns-parser)",
@@ -612,7 +612,7 @@ dependencies = [
  "env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "getopts 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
- "librespot 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=win-mdns)",
+ "librespot 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=spotty)",
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-core 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-proto 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -976,12 +976,12 @@ dependencies = [
 "checksum lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "3b37545ab726dd833ec6420aaba8231c5b320814b9029ad585555d2a03e94fbf"
 "checksum lazycell 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ce12306c4739d86ee97c23139f3a34ddf0387bbf181bc7929d287025a8c3ef6b"
 "checksum libc 0.2.24 (registry+https://github.com/rust-lang/crates.io-index)" = "38f5c2b18a287cf78b4097db62e20f43cace381dc76ae5c0a3073067f78b7ddc"
-"checksum librespot 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=win-mdns)" = "<none>"
-"checksum librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=win-mdns)" = "<none>"
+"checksum librespot 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=spotty)" = "<none>"
+"checksum librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=spotty)" = "<none>"
 "checksum linear-map 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8f947d2a0ca958037e42a430bc7ea4369f97b60a2002bd927b84404509cc64cf"
 "checksum log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)" = "880f77541efa6e5cc74e76910c9884d9859683118839d6a1dc3b11e63512565b"
 "checksum matches 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "100aabe6b8ff4e4a7e32c1c13523379802df0772b82466207ac25b013f193376"
-"checksum mdns 0.2.0 (git+https://github.com/michaelherger/rust-mdns?branch=windows)" = "<none>"
+"checksum mdns 0.2.0 (git+https://github.com/plietar/rust-mdns)" = "<none>"
 "checksum memchr 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "1dbccc0e46f1ea47b9f17e6d67c5a96bd27030519c519c9c91327e31275a47b4"
 "checksum mime 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "c5ca99d8a021c1687882fd68dca26e601ceff5c26571c7cb41cf4ed60d57cb2d"
 "checksum mio 0.6.9 (registry+https://github.com/rust-lang/crates.io-index)" = "9e965267d4d58496fc4f740e9861118367f13570cadf66316ed2c3f2f14d87c7"
