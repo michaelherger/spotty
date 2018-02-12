@@ -248,7 +248,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "librespot"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#622390ef3aeb111340f724f8870e605f255a0dfa"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#ba4f9eda34b2ba1fe499769c260333c87ec5d7fb"
 dependencies = [
  "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -256,8 +256,8 @@ dependencies = [
  "getopts 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.11.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "librespot-audio 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
+ "librespot-connect 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
  "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
- "librespot-discovery 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
  "librespot-metadata 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
  "librespot-playback 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
  "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
@@ -281,7 +281,7 @@ dependencies = [
 [[package]]
 name = "librespot-audio"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#622390ef3aeb111340f724f8870e605f255a0dfa"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#ba4f9eda34b2ba1fe499769c260333c87ec5d7fb"
 dependencies = [
  "bit-set 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -296,9 +296,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "librespot-connect"
+version = "0.1.0"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#ba4f9eda34b2ba1fe499769c260333c87ec5d7fb"
+dependencies = [
+ "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "futures 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 0.11.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
+ "librespot-playback 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
+ "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
+ "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mdns 0.2.0 (git+https://github.com/plietar/rust-mdns)",
+ "num-bigint 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protobuf_macros 0.6.0 (git+https://github.com/plietar/rust-protobuf-macros)",
+ "rand 0.3.20 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rust-crypto 0.2.36 (git+https://github.com/awmath/rust-crypto.git?branch=avx2)",
+ "serde 0.9.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 0.9.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 0.9.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tokio-core 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "librespot-core"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#622390ef3aeb111340f724f8870e605f255a0dfa"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#ba4f9eda34b2ba1fe499769c260333c87ec5d7fb"
 dependencies = [
  "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -328,31 +353,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "librespot-discovery"
-version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#622390ef3aeb111340f724f8870e605f255a0dfa"
-dependencies = [
- "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "futures 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
- "hyper 0.11.15 (registry+https://github.com/rust-lang/crates.io-index)",
- "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)",
- "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "mdns 0.2.0 (git+https://github.com/plietar/rust-mdns)",
- "num-bigint 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
- "protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.3.20 (registry+https://github.com/rust-lang/crates.io-index)",
- "rust-crypto 0.2.36 (git+https://github.com/awmath/rust-crypto.git?branch=avx2)",
- "serde 0.9.15 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 0.9.15 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_json 0.9.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "tokio-core 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
- "url 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "librespot-metadata"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#622390ef3aeb111340f724f8870e605f255a0dfa"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#ba4f9eda34b2ba1fe499769c260333c87ec5d7fb"
 dependencies = [
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -365,7 +368,7 @@ dependencies = [
 [[package]]
 name = "librespot-playback"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#622390ef3aeb111340f724f8870e605f255a0dfa"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#ba4f9eda34b2ba1fe499769c260333c87ec5d7fb"
 dependencies = [
  "futures 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.11.15 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -379,7 +382,7 @@ dependencies = [
 [[package]]
 name = "librespot-protocol"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#622390ef3aeb111340f724f8870e605f255a0dfa"
+source = "git+https://github.com/michaelherger/librespot.git?branch=refactor-0817#ba4f9eda34b2ba1fe499769c260333c87ec5d7fb"
 dependencies = [
  "protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -1056,8 +1059,8 @@ dependencies = [
 "checksum libc 0.2.36 (registry+https://github.com/rust-lang/crates.io-index)" = "1e5d97d6708edaa407429faa671b942dc0f2727222fb6b6539bf1db936e4b121"
 "checksum librespot 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)" = "<none>"
 "checksum librespot-audio 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)" = "<none>"
+"checksum librespot-connect 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)" = "<none>"
 "checksum librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)" = "<none>"
-"checksum librespot-discovery 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)" = "<none>"
 "checksum librespot-metadata 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)" = "<none>"
 "checksum librespot-playback 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)" = "<none>"
 "checksum librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?branch=refactor-0817)" = "<none>"

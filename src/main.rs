@@ -24,13 +24,15 @@ use std::mem;
 
 use librespot::core::authentication::{get_credentials, Credentials};
 use librespot::core::cache::Cache;
-use librespot::core::config::{Bitrate, DeviceType, PlayerConfig, SessionConfig, ConnectConfig};
+use librespot::core::config::{DeviceType, SessionConfig, ConnectConfig};
 use librespot::core::session::Session;
-use librespot::discovery::discovery::{discovery, DiscoveryStream};
+
 use librespot::playback::audio_backend::{self};
+use librespot::playback::config::{Bitrate, PlayerConfig};
+use librespot::connect::discovery::{discovery, DiscoveryStream};
 use librespot::playback::mixer::{self};
 use librespot::playback::player::Player;
-use librespot::spirc::{Spirc, SpircTask};
+use librespot::connect::spirc::{Spirc, SpircTask};
 
 use librespot::core::util::SpotifyId;
 
