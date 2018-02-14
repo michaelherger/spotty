@@ -277,8 +277,9 @@ impl Future for Main {
 						if let Some(ref spirc) = self.spirc {
 							spirc.shutdown();
 						}
+
 						self.shutdown = true;
-					} else {
+
 						return Ok(Async::Ready(()));
 					}
 				}
