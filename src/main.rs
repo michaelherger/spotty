@@ -34,7 +34,7 @@ use librespot::playback::mixer::{self};
 use librespot::playback::player::Player;
 use librespot::connect::spirc::{Spirc, SpircTask};
 
-use librespot::core::util::SpotifyId;
+use librespot::core::spotify_id::SpotifyId;
 
 const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
 
