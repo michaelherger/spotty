@@ -2,3 +2,6 @@ target/
 **/*.rs.bk
 .history
 client_id.txt
+
+t/data/
+test-data.json
