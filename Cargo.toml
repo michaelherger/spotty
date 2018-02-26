@@ -10,6 +10,7 @@ doc = false
 
 [dependencies]
 env_logger = "0.4.0"
+rust-crypto = "0.2.36"
 futures = "0.1.8"
 getopts = "0.2.14"
 log = "0.3.5"
@@ -24,6 +25,9 @@ branch = "refactor-0817"
 default-features = false
 # enable the following for macOS <= 10.9 compatibility
 #features = ["with-tremor","with-lewton"]
+
+[replace]
+"rust-crypto:0.2.36" = { git = "https://github.com/awmath/rust-crypto.git", branch = "avx2" }
 
 [profile.release]
 lto = true

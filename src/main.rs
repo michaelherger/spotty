@@ -8,6 +8,7 @@ extern crate librespot;
 extern crate tokio_core;
 extern crate tokio_io;
 extern crate tokio_signal;
+extern crate crypto;
 
 #[cfg(debug_assertions)]
 use env_logger::LogBuilder;
@@ -21,6 +22,8 @@ use std::str::FromStr;
 use tokio_core::reactor::{Handle, Core};
 use tokio_io::IoStream;
 use std::mem;
+use crypto::digest::Digest;
+use crypto::sha1::Sha1;
 
 use librespot::core::authentication::{get_credentials, Credentials};
 use librespot::core::cache::Cache;
@@ -42,6 +45,12 @@ const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_
 const NULLDEVICE: &'static str = "NUL";
 #[cfg(not(target_os="windows"))]
 const NULLDEVICE: &'static str = "/dev/null";
+
+fn device_id(name: &str) -> String {
+	let mut h = Sha1::new();
+	h.input_str(name);
+	h.result_str()
+}
 
 fn usage(program: &str, opts: &getopts::Options) -> String {
 	println!("{}", VERSION.to_string());
@@ -164,7 +173,7 @@ fn setup(args: &[String]) -> Setup {
 		.parse().unwrap_or(0.0);
 
 	let session_config = {
-		let device_id = librespot::core::session::device_id(&name);
+		let device_id = device_id(&name);
 
 		SessionConfig {
 			user_agent: VERSION.to_string(),
@@ -184,6 +193,8 @@ fn setup(args: &[String]) -> Setup {
 			onchange: matches.opt_str("onchange"),
 			mac: matches.opt_str("player-mac"),
 			lms: matches.opt_str("lms"),
+			normalisation: false,
+			normalisation_pregain: PlayerConfig::default().normalisation_pregain,
 		}
 	};
 
