@@ -1,6 +1,6 @@
 [package]
 name = "spotty"
-version = "0.9.3"
+version = "0.9.9"
 authors = ["Michael Herger <michael@herger.net>"]
 
 [[bin]]
@@ -10,10 +10,12 @@ doc = false
 
 [dependencies]
 env_logger = "0.4.0"
+hyper = "0.11.2"
 rust-crypto = "0.2.36"
 futures = "0.1.8"
 getopts = "0.2.14"
 log = "0.3.5"
+rpassword = "0.3.0"
 tokio-core = "0.1.2"
 tokio-io = "0.1"
 tokio-signal = "0.1.2"

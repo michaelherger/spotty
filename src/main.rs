@@ -4,7 +4,9 @@
 extern crate env_logger;
 extern crate futures;
 extern crate getopts;
+extern crate hyper;
 extern crate librespot;
+extern crate rpassword;
 extern crate tokio_core;
 extern crate tokio_io;
 extern crate tokio_signal;
@@ -13,6 +15,7 @@ extern crate crypto;
 #[cfg(debug_assertions)]
 use env_logger::LogBuilder;
 use futures::{Future, Async, Poll, Stream};
+use futures::sync::mpsc::UnboundedReceiver;
 #[cfg(debug_assertions)]
 use std::env;
 use std::io::{self, stderr, Write};
@@ -34,10 +37,13 @@ use librespot::playback::audio_backend::{self};
 use librespot::playback::config::{Bitrate, PlayerConfig};
 use librespot::connect::discovery::{discovery, DiscoveryStream};
 use librespot::playback::mixer::{self};
-use librespot::playback::player::Player;
+use librespot::playback::player::{Player, PlayerEvent};
 use librespot::connect::spirc::{Spirc, SpircTask};
 
 use librespot::core::spotify_id::SpotifyId;
+
+mod lms;
+use lms::LMS;
 
 const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
 
@@ -99,6 +105,7 @@ struct Setup {
 
 	single_track: Option<String>,
 	start_position: u32,
+	lms: LMS
 }
 
 fn setup(args: &[String]) -> Setup {
@@ -108,9 +115,6 @@ fn setup(args: &[String]) -> Setup {
 		.optflag("", "disable-audio-cache", "(Only here fore compatibility with librespot - audio cache is disabled by default).")
 		.reqopt("n", "name", "Device name", "NAME")
 		.optopt("b", "bitrate", "Bitrate (96, 160 or 320). Defaults to 320.", "BITRATE")
-		.optopt("", "onstart", "Run PROGRAM when playback is about to begin.", "PROGRAM")
-		.optopt("", "onstop", "Run PROGRAM when playback has ended.", "PROGRAM")
-		.optopt("", "onchange", "Run PROGRAM when playback changes (new track, seeking etc.).", "PROGRAM")
 		.optopt("", "player-mac", "MAC address of the Squeezebox to be controlled", "MAC")
 		.optopt("", "lms", "hostname and port of Logitech Media Server instance (eg. localhost:9000)", "LMS")
 		.optopt("", "single-track", "Play a single track ID and exit.", "ID")
@@ -157,10 +161,17 @@ fn setup(args: &[String]) -> Setup {
 	let credentials = {
 		let cached_credentials = cache.as_ref().and_then(Cache::credentials);
 
+		let password = |username: &String| -> String {
+			write!(stderr(), "Password for {}: ", username).unwrap();
+			stderr().flush().unwrap();
+			rpassword::read_password().unwrap()
+		};
+
 		get_credentials(
 			matches.opt_str("username"),
 			matches.opt_str("password"),
-			cached_credentials
+			cached_credentials,
+			password
 		)
 	};
 
@@ -170,7 +181,7 @@ fn setup(args: &[String]) -> Setup {
 
 	let start_position = matches.opt_str("start-position")
 		.unwrap_or("0".to_string())
-		.parse().unwrap_or(0.0);
+		.parse().unwrap_or(0);
 
 	let session_config = {
 		let device_id = device_id(&name);
@@ -188,13 +199,9 @@ fn setup(args: &[String]) -> Setup {
 
 		PlayerConfig {
 			bitrate: bitrate,
-			onstart: matches.opt_str("onstart"),
-			onstop: matches.opt_str("onstop"),
-			onchange: matches.opt_str("onchange"),
-			mac: matches.opt_str("player-mac"),
-			lms: matches.opt_str("lms"),
 			normalisation: false,
 			normalisation_pregain: PlayerConfig::default().normalisation_pregain,
+			lms_connect_mode: !matches.opt_present("single-track")
 		}
 	};
 
@@ -208,6 +215,8 @@ fn setup(args: &[String]) -> Setup {
 
 	let client_id = matches.opt_str("client-id")
 		.unwrap_or(format!("{}", include_str!("client_id.txt")));
+
+	let lms = LMS::new(matches.opt_str("lms"), matches.opt_str("player-mac"));
 
 	Setup {
 		cache: cache,
@@ -223,7 +232,9 @@ fn setup(args: &[String]) -> Setup {
 		scope: matches.opt_str("scope"),
 
 		single_track: matches.opt_str("single-track"),
-		start_position: (start_position * 1000.0) as u32,
+		start_position: (start_position * 1000) as u32,
+
+		lms: lms
 	}
 }
 
@@ -242,7 +253,10 @@ struct Main {
 	connect: Box<Future<Item=Session, Error=io::Error>>,
 
 	shutdown: bool,
-	authenticate: bool
+	authenticate: bool,
+
+	event_channel: Option<UnboundedReceiver<PlayerEvent>>,
+	lms: LMS
 }
 
 impl Main {
@@ -262,6 +276,9 @@ impl Main {
 			shutdown: false,
 			authenticate: setup.authenticate,
 			signal: Box::new(tokio_signal::ctrl_c(&handle).flatten_stream()),
+
+			event_channel: None,
+			lms: setup.lms
 		};
 
 		if setup.enable_discovery {
@@ -331,13 +348,14 @@ impl Future for Main {
 
 					let audio_filter = mixer.get_audio_filter();
 					let backend = audio_backend::find(None).unwrap();
-					let player = Player::new(player_config, session.clone(), audio_filter, move || {
+					let (player, event_channel) = Player::new(player_config, session.clone(), audio_filter, move || {
 						(backend)(Some(NULLDEVICE.to_string()))
 					});
 
 					let (spirc, spirc_task) = Spirc::new(connect_config, session.clone(), player, mixer);
 					self.spirc = Some(spirc);
 					self.spirc_task = Some(spirc_task);
+					self.event_channel = Some(event_channel);
 				}
 
 				progress = true;
@@ -366,6 +384,12 @@ impl Future for Main {
 				}
 			}
 
+			if let Some(ref mut event_channel) = self.event_channel {
+				if let Async::Ready(Some(event)) = event_channel.poll().unwrap() {
+					self.lms.signal_event(event);
+				}
+			}
+
 			if !progress {
 				return Ok(Async::NotReady);
 			}
@@ -378,7 +402,7 @@ fn main() {
 	let handle = core.handle();
 
 	let args: Vec<String> = std::env::args().collect();
-	let Setup { cache, session_config, player_config, connect_config, credentials, authenticate, enable_discovery, get_token, client_id, scope, single_track, start_position } = setup(&args.clone());
+	let Setup { cache, session_config, player_config, connect_config, credentials, authenticate, enable_discovery, get_token, client_id, scope, single_track, start_position, lms } = setup(&args.clone());
 
 	if let Some(ref track_id) = single_track {
 		match credentials {
@@ -394,9 +418,9 @@ fn main() {
 
 				let session = core.run(Session::connect(session_config.clone(), credentials, cache.clone(), handle)).unwrap();
 
-				let player = Player::new(player_config, session.clone(), None, move || (backend)(None));
+				let (player, _) = Player::new(player_config, session.clone(), None, move || (backend)(None));
 
-				core.run(player.load(track, true, start_position)).unwrap();
+				core.run(player.load(track.unwrap(), true, start_position)).unwrap();
 			}
 			None => {
 				println!("Missing credentials");
@@ -429,7 +453,7 @@ fn main() {
 		}
 	}
 	else {
-		core.run(Main::new(handle, Setup { cache, session_config, player_config, connect_config, credentials, authenticate, enable_discovery, get_token, client_id, scope, single_track, start_position })).unwrap()
+		core.run(Main::new(handle, Setup { cache, session_config, player_config, connect_config, credentials, authenticate, enable_discovery, get_token, client_id, scope, single_track, start_position, lms })).unwrap()
 	}
 }
 
