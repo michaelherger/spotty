@@ -41,15 +41,15 @@ impl LMS {
 				old_track_id,
 				new_track_id,
 			} => {
-				// debug!("change: {:?} -> {:?}", old_track_id.to_base16(), new_track_id.to_base16());
+				// debug!("change: spotify:track:{} -> spotify:track:{}", old_track_id.to_base62(), new_track_id.to_base62());
 				self.change();
 			}
 			PlayerEvent::Started { track_id } => {
-				// debug!("play {}", track_id.to_base16());
+				// debug!("play spotify:track:{}", track_id.to_base62());
 				self.play();
 			}
 			PlayerEvent::Stopped { track_id } => {
-				// debug!("stop {}", track_id.to_base16());
+				// debug!("stop spotify:track:{}", track_id.to_base62());
 				self.stop();
 			}
 			PlayerEvent::Volume { volume } => {
