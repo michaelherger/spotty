@@ -22,7 +22,7 @@ tokio-signal = "0.1.2"
 
 [dependencies.librespot]
 git = "https://github.com/michaelherger/librespot.git"
-rev = "973c3cda1365cf06a40c36b03e84b799dc00fb73"
+rev = "80c006c8684ea40036b57165b2960d4c105c662a"
 #branch = "refactor-0817"
 #path = "../librespot"
 default-features = false
