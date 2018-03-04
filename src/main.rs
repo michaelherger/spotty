@@ -1,19 +1,21 @@
-// TODO: many items from tokio-core::io have been deprecated in favour of tokio-io
-#![allow(deprecated)]
-
 #[cfg(debug_assertions)]
 #[macro_use] extern crate log;
 #[cfg(debug_assertions)]
 extern crate env_logger;
 extern crate futures;
 extern crate getopts;
+extern crate hyper;
 extern crate librespot;
+extern crate rpassword;
 extern crate tokio_core;
+extern crate tokio_io;
 extern crate tokio_signal;
+extern crate crypto;
 
 #[cfg(debug_assertions)]
 use env_logger::LogBuilder;
 use futures::{Future, Async, Poll, Stream};
+use futures::sync::mpsc::UnboundedReceiver;
 #[cfg(debug_assertions)]
 use std::env;
 use std::io::{self, stderr, Write};
@@ -21,18 +23,27 @@ use std::path::PathBuf;
 use std::process::exit;
 use std::str::FromStr;
 use tokio_core::reactor::{Handle, Core};
-use tokio_core::io::IoStream;
+use tokio_io::IoStream;
 use std::mem;
+use crypto::digest::Digest;
+use crypto::sha1::Sha1;
 
-use librespot::spirc::{Spirc, SpircTask};
-use librespot::authentication::{get_credentials, Credentials};
-use librespot::authentication::discovery::{discovery, DiscoveryStream};
-use librespot::audio_backend;
-use librespot::cache::Cache;
-use librespot::player::Player;
-use librespot::session::{Bitrate, Config, Session};
-use librespot::mixer;
-use librespot::util::SpotifyId;
+use librespot::core::authentication::{get_credentials, Credentials};
+use librespot::core::cache::Cache;
+use librespot::core::config::{DeviceType, SessionConfig, ConnectConfig};
+use librespot::core::session::Session;
+
+use librespot::playback::audio_backend::{self};
+use librespot::playback::config::{Bitrate, PlayerConfig};
+use librespot::connect::discovery::{discovery, DiscoveryStream};
+use librespot::playback::mixer::{self};
+use librespot::playback::player::{Player, PlayerEvent};
+use librespot::connect::spirc::{Spirc, SpircTask};
+
+use librespot::core::spotify_id::SpotifyId;
+
+mod lms;
+use lms::LMS;
 
 const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
 
@@ -40,6 +51,12 @@ const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_
 const NULLDEVICE: &'static str = "NUL";
 #[cfg(not(target_os="windows"))]
 const NULLDEVICE: &'static str = "/dev/null";
+
+fn device_id(name: &str) -> String {
+	let mut h = Sha1::new();
+	h.input_str(name);
+	h.result_str()
+}
 
 fn usage(program: &str, opts: &getopts::Options) -> String {
 	println!("{}", VERSION.to_string());
@@ -73,12 +90,14 @@ fn setup_logging(verbose: bool) {
 
 #[derive(Clone)]
 struct Setup {
-	name: String,
 	cache: Option<Cache>,
-	config: Config,
+	player_config: PlayerConfig,
+	session_config: SessionConfig,
+	connect_config: ConnectConfig,
 	credentials: Option<Credentials>,
-	authenticate: bool,
 	enable_discovery: bool,
+
+	authenticate: bool,
 
 	get_token: bool,
 	client_id: Option<String>,
@@ -86,6 +105,7 @@ struct Setup {
 
 	single_track: Option<String>,
 	start_position: u32,
+	lms: LMS
 }
 
 fn setup(args: &[String]) -> Setup {
@@ -95,9 +115,6 @@ fn setup(args: &[String]) -> Setup {
 		.optflag("", "disable-audio-cache", "(Only here fore compatibility with librespot - audio cache is disabled by default).")
 		.reqopt("n", "name", "Device name", "NAME")
 		.optopt("b", "bitrate", "Bitrate (96, 160 or 320). Defaults to 320.", "BITRATE")
-		.optopt("", "onstart", "Run PROGRAM when playback is about to begin.", "PROGRAM")
-		.optopt("", "onstop", "Run PROGRAM when playback has ended.", "PROGRAM")
-		.optopt("", "onchange", "Run PROGRAM when playback changes (new track, seeking etc.).", "PROGRAM")
 		.optopt("", "player-mac", "MAC address of the Squeezebox to be controlled", "MAC")
 		.optopt("", "lms", "hostname and port of Logitech Media Server instance (eg. localhost:9000)", "LMS")
 		.optopt("", "single-track", "Play a single track ID and exit.", "ID")
@@ -133,12 +150,7 @@ fn setup(args: &[String]) -> Setup {
 		setup_logging(verbose);
 	}
 
-	let bitrate = matches.opt_str("b").as_ref()
-		.map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
-		.unwrap_or(Bitrate::Bitrate320);
-
 	let name = matches.opt_str("name").unwrap();
-	let device_id = librespot::session::device_id(&name);
 
 	let use_audio_cache = matches.opt_present("enable-audio-cache") && !matches.opt_present("disable-audio-cache");
 
@@ -146,9 +158,22 @@ fn setup(args: &[String]) -> Setup {
 		Cache::new(PathBuf::from(cache_location), use_audio_cache)
 	});
 
-	let cached_credentials = cache.as_ref().and_then(Cache::credentials);
+	let credentials = {
+		let cached_credentials = cache.as_ref().and_then(Cache::credentials);
 
-	let credentials = get_credentials(matches.opt_str("username"), matches.opt_str("password"), cached_credentials);
+		let password = |username: &String| -> String {
+			write!(stderr(), "Password for {}: ", username).unwrap();
+			stderr().flush().unwrap();
+			rpassword::read_password().unwrap()
+		};
+
+		get_credentials(
+			matches.opt_str("username"),
+			matches.opt_str("password"),
+			cached_credentials,
+			password
+		)
+	};
 
 	let authenticate = matches.opt_present("authenticate");
 
@@ -156,26 +181,48 @@ fn setup(args: &[String]) -> Setup {
 
 	let start_position = matches.opt_str("start-position")
 		.unwrap_or("0".to_string())
-		.parse().unwrap_or(0.0);
+		.parse().unwrap_or(0);
+
+	let session_config = {
+		let device_id = device_id(&name);
+
+		SessionConfig {
+			user_agent: VERSION.to_string(),
+			device_id: device_id
+		}
+	};
+
+	let player_config = {
+		let bitrate = matches.opt_str("b").as_ref()
+				.map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
+				.unwrap_or(Bitrate::Bitrate320);
+
+		PlayerConfig {
+			bitrate: bitrate,
+			normalisation: false,
+			normalisation_pregain: PlayerConfig::default().normalisation_pregain,
+			lms_connect_mode: !matches.opt_present("single-track")
+		}
+	};
+
+	let connect_config = {
+		ConnectConfig {
+			name: name,
+			device_type: DeviceType::Speaker,
+			volume: 0x8000 as i32,
+		}
+	};
 
 	let client_id = matches.opt_str("client-id")
 		.unwrap_or(format!("{}", include_str!("client_id.txt")));
 
-	let config = Config {
-		user_agent: VERSION.to_string(),
-		device_id: device_id,
-		bitrate: bitrate,
-		onstart: matches.opt_str("onstart"),
-		onstop: matches.opt_str("onstop"),
-		onchange: matches.opt_str("onchange"),
-		mac: matches.opt_str("player-mac"),
-		lms: matches.opt_str("lms"),
-	};
+	let lms = LMS::new(matches.opt_str("lms"), matches.opt_str("player-mac"));
 
 	Setup {
-		name: name,
 		cache: cache,
-		config: config,
+		session_config: session_config,
+		player_config: player_config,
+		connect_config: connect_config,
 		credentials: credentials,
 		authenticate: authenticate,
 		enable_discovery: enable_discovery,
@@ -185,14 +232,17 @@ fn setup(args: &[String]) -> Setup {
 		scope: matches.opt_str("scope"),
 
 		single_track: matches.opt_str("single-track"),
-		start_position: (start_position * 1000.0) as u32,
+		start_position: (start_position * 1000) as u32,
+
+		lms: lms
 	}
 }
 
 struct Main {
-	name: String,
 	cache: Option<Cache>,
-	config: Config,
+	player_config: PlayerConfig,
+	session_config: SessionConfig,
+	connect_config: ConnectConfig,
 	handle: Handle,
 
 	discovery: Option<DiscoveryStream>,
@@ -204,22 +254,19 @@ struct Main {
 
 	shutdown: bool,
 	authenticate: bool,
+
+	event_channel: Option<UnboundedReceiver<PlayerEvent>>,
+	lms: LMS
 }
 
 impl Main {
-	fn new(
-		handle: Handle,
-		name: String,
-		config: Config,
-		cache: Option<Cache>,
-		authenticate: bool,
-	) -> Main
-	{
-		Main {
+	fn new(handle: Handle, setup: Setup) -> Main {
+		let mut task = Main {
 			handle: handle.clone(),
-			name: name,
-			cache: cache,
-			config: config,
+			cache: setup.cache,
+			session_config: setup.session_config,
+			player_config: setup.player_config,
+			connect_config: setup.connect_config,
 
 			connect: Box::new(futures::future::empty()),
 			discovery: None,
@@ -227,20 +274,29 @@ impl Main {
 			spirc_task: None,
 
 			shutdown: false,
-			authenticate: authenticate,
-			signal: tokio_signal::ctrl_c(&handle).flatten_stream().boxed(),
+			authenticate: setup.authenticate,
+			signal: Box::new(tokio_signal::ctrl_c(&handle).flatten_stream()),
+
+			event_channel: None,
+			lms: setup.lms
+		};
+
+		if setup.enable_discovery {
+			let config = task.connect_config.clone();
+			let device_id = task.session_config.device_id.clone();
+
+			task.discovery = Some(discovery(&handle, config, device_id, 0).unwrap());
 		}
-	}
 
-	fn discovery(&mut self) {
-		let device_id = self.config.device_id.clone();
-		let name = self.name.clone();
+		if let Some(credentials) = setup.credentials {
+			task.credentials(credentials);
+		}
 
-		self.discovery = Some(discovery(&self.handle, name, device_id).unwrap());
+		task
 	}
 
 	fn credentials(&mut self, credentials: Credentials) {
-		let config = self.config.clone();
+		let config = self.session_config.clone();
 		let handle = self.handle.clone();
 
 		let connection = Session::connect(config, credentials, self.cache.clone(), handle);
@@ -271,7 +327,7 @@ impl Future for Main {
 				progress = true;
 			}
 
-			if let Async::Ready(session) = self.connect.poll().unwrap() {
+			if let Async::Ready(ref mut session) = self.connect.poll().unwrap() {
 				if self.authenticate {
 					if !self.shutdown {
 						if let Some(ref spirc) = self.spirc {
@@ -285,18 +341,21 @@ impl Future for Main {
 				}
 				else {
 					self.connect = Box::new(futures::future::empty());
+					let player_config = self.player_config.clone();
+					let connect_config = self.connect_config.clone();
 
 					let mixer = (mixer::find(Some("softvol")).unwrap())();
 
 					let audio_filter = mixer.get_audio_filter();
 					let backend = audio_backend::find(None).unwrap();
-					let player = Player::new(session.clone(), audio_filter, move || {
+					let (player, event_channel) = Player::new(player_config, session.clone(), audio_filter, move || {
 						(backend)(Some(NULLDEVICE.to_string()))
 					});
 
-					let (spirc, spirc_task) = Spirc::new(self.name.clone(), session, player, mixer);
+					let (spirc, spirc_task) = Spirc::new(connect_config, session.clone(), player, mixer);
 					self.spirc = Some(spirc);
 					self.spirc_task = Some(spirc_task);
+					self.event_channel = Some(event_channel);
 				}
 
 				progress = true;
@@ -325,6 +384,12 @@ impl Future for Main {
 				}
 			}
 
+			if let Some(ref mut event_channel) = self.event_channel {
+				if let Async::Ready(Some(event)) = event_channel.poll().unwrap() {
+					self.lms.signal_event(event);
+				}
+			}
+
 			if !progress {
 				return Ok(Async::NotReady);
 			}
@@ -337,7 +402,7 @@ fn main() {
 	let handle = core.handle();
 
 	let args: Vec<String> = std::env::args().collect();
-	let Setup { name, config, cache, enable_discovery, credentials, authenticate, get_token, client_id, scope, single_track, start_position } = setup(&args);
+	let Setup { cache, session_config, player_config, connect_config, credentials, authenticate, enable_discovery, get_token, client_id, scope, single_track, start_position, lms } = setup(&args.clone());
 
 	if let Some(ref track_id) = single_track {
 		match credentials {
@@ -351,11 +416,11 @@ fn main() {
 									.replace("track:", "")
 									.as_str());
 
-				let session = core.run(Session::connect(config, credentials, cache.clone(), handle)).unwrap();
+				let session = core.run(Session::connect(session_config.clone(), credentials, cache.clone(), handle)).unwrap();
 
-				let player = Player::new(session.clone(), None, move || (backend)(None));
+				let (player, _) = Player::new(player_config, session.clone(), None, move || (backend)(None));
 
-				core.run(player.load(track, true, start_position)).unwrap();
+				core.run(player.load(track.unwrap(), true, start_position)).unwrap();
 			}
 			None => {
 				println!("Missing credentials");
@@ -363,34 +428,32 @@ fn main() {
 		}
 	}
 	else if authenticate && !enable_discovery {
-		core.run(Session::connect(config, credentials.unwrap(), cache.clone(), handle)).unwrap();
+		core.run(Session::connect(session_config.clone(), credentials.unwrap(), cache.clone(), handle)).unwrap();
 		println!("authorized");
 	}
 	else if get_token {
 		if let Some(client_id) = client_id {
-			let session = core.run(Session::connect(config, credentials.unwrap(), cache.clone(), handle)).unwrap();
+			let session = core.run(Session::connect(session_config, credentials.unwrap(), cache.clone(), handle)).unwrap();
 			let scope = scope.unwrap_or("user-read-private,playlist-read-private,playlist-read-collaborative,playlist-modify-public,playlist-modify-private,user-follow-modify,user-follow-read,user-library-read,user-library-modify,user-top-read,user-read-recently-played".to_string());
 			let url = format!("hm://keymaster/token/authenticated?client_id={}&scope={}", client_id, scope);
-			core.run(session.mercury().get(url).map(move |response| {
+
+			let result = core.run(Box::new(session.mercury().get(url).map(move |response| {
 				let data = response.payload.first().expect("Empty payload");
 				let token = String::from_utf8(data.clone()).unwrap();
 				println!("{}", token);
-			}).boxed()).unwrap();
+			})));
+
+			match result {
+				Ok(_) => (),
+				Err(e) => println!("error getting token {:?}", e),
+			}
 		}
 		else {
 			println!("Use --client-id to provide a CLIENT_ID");
 		}
 	}
 	else {
-		let mut task = Main::new(handle, name, config, cache, authenticate);
-		if enable_discovery {
-			task.discovery();
-		}
-		if let Some(credentials) = credentials {
-			task.credentials(credentials);
-		}
-
-		core.run(task).unwrap()
+		core.run(Main::new(handle, Setup { cache, session_config, player_config, connect_config, credentials, authenticate, enable_discovery, get_token, client_id, scope, single_track, start_position, lms })).unwrap()
 	}
 }
 
