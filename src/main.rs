@@ -118,7 +118,7 @@ fn setup(args: &[String]) -> Setup {
 		.optopt("", "player-mac", "MAC address of the Squeezebox to be controlled", "MAC")
 		.optopt("", "lms", "hostname and port of Logitech Media Server instance (eg. localhost:9000)", "LMS")
 		.optopt("", "single-track", "Play a single track ID and exit.", "ID")
-		.optopt("", "start-position", "Position (in ms) where playback should be started. Only valid with the --single-track option.", "STARTPOSITION")
+		.optopt("", "start-position", "Position (in seconds) where playback should be started. Only valid with the --single-track option.", "STARTPOSITION")
 		.optopt("u", "username", "Username to sign in with", "USERNAME")
 		.optopt("p", "password", "Password", "PASSWORD")
 		.optflag("a", "authenticate", "Authenticate given username and password. Make sure you define a cache folder to store credentials.")
@@ -181,7 +181,7 @@ fn setup(args: &[String]) -> Setup {
 
 	let start_position = matches.opt_str("start-position")
 		.unwrap_or("0".to_string())
-		.parse().unwrap_or(0);
+		.parse::<f32>().unwrap_or(0.0);
 
 	let session_config = {
 		let device_id = device_id(&name);
@@ -232,7 +232,7 @@ fn setup(args: &[String]) -> Setup {
 		scope: matches.opt_str("scope"),
 
 		single_track: matches.opt_str("single-track"),
-		start_position: (start_position * 1000) as u32,
+		start_position: (start_position * 1000.0) as u32,
 
 		lms: lms
 	}

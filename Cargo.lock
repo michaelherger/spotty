@@ -792,7 +792,7 @@ dependencies = [
 
 [[package]]
 name = "spotty"
-version = "0.9.10"
+version = "0.9.11"
 dependencies = [
  "env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
