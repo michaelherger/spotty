@@ -41,23 +41,28 @@ impl LMS {
 				old_track_id,
 				new_track_id,
 			} => {
-				// debug!("change: spotify:track:{} -> spotify:track:{}", old_track_id.to_base62(), new_track_id.to_base62());
+				#[cfg(debug_assertions)]
+				info!("change: spotify:track:{} -> spotify:track:{}", old_track_id.to_base62(), new_track_id.to_base62());
 				self.change();
 			}
 			PlayerEvent::Started { track_id } => {
-				// debug!("play spotify:track:{}", track_id.to_base62());
+				#[cfg(debug_assertions)]
+				info!("play spotify:track:{}", track_id.to_base62());
 				self.play();
 			}
 			PlayerEvent::Stopped { track_id } => {
-				// debug!("stop spotify:track:{}", track_id.to_base62());
+				#[cfg(debug_assertions)]
+				info!("stop spotify:track:{}", track_id.to_base62());
 				self.stop();
 			}
 			PlayerEvent::Volume { volume } => {
-				// debug!("volume {}", volume);
+				#[cfg(debug_assertions)]
+				info!("volume {}", volume);
 				self.volume(volume as u16);
 			}
 			PlayerEvent::Seek { position } => {
-				// debug!("seek {}", position);
+				#[cfg(debug_assertions)]
+				info!("seek {}", position);
 				// we're not implementing the seek event in LMS, as it's going to read player state anyway
 				self.change();
 			}
@@ -83,19 +88,24 @@ impl LMS {
 
 	pub fn request(&self, command: String) {
 		if !self.is_configured() {
-			// debug!("LMS connection is not configured");
+			#[cfg(debug_assertions)]
+			info!("LMS connection is not configured");
 			return;
 		}
 
-		// debug!("Base URL to talk to LMS: {}", self.base_url.clone().unwrap());
+		#[cfg(debug_assertions)]
+		info!("Base URL to talk to LMS: {}", self.base_url.clone().unwrap());
 
 		if let Some(ref base_url) = self.base_url {
-			// debug!("Player MAC address to control: {}", self.player_mac.clone().unwrap());
+			#[cfg(debug_assertions)]
+			info!("Player MAC address to control: {}", self.player_mac.clone().unwrap());
 			if let Some(ref player_mac) = self.player_mac {
 				let mut core = Core::new().unwrap();
 				let client = Client::new(&core.handle());
 
-				// debug!("Command to send to player: {}", command);
+				#[cfg(debug_assertions)]
+				info!("Command to send to player: {}", command);
+
 				let json = format!(r#"{{"id": 1,"method":"slim.request","params":["{}",{}]}}"#, player_mac, command);
 				let uri = Uri::from_str(base_url).unwrap();
 				let mut req = Request::new(Method::Post, uri);
