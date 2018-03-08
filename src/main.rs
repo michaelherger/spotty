@@ -79,9 +79,9 @@ fn setup_logging(verbose: bool) {
 		}
 		Err(_) => {
 			if verbose {
-				builder.parse("mdns=info,librespot=trace");
+				builder.parse("mdns=info,librespot=debug,spotty=info");
 			} else {
-				builder.parse("mdns=error,librespot=warn");
+				builder.parse("mdns=error,librespot=warn,spotty=error");
 			}
 			builder.init().unwrap();
 		}
@@ -126,10 +126,8 @@ fn setup(args: &[String]) -> Setup {
 		.optflag("t", "get-token", "Get oauth token to be used with the web API etc.")
 		.optopt("i", "client-id", "A Spotify client_id to be used to get the oauth token. Required with the --get-token request.", "CLIENT_ID")
 		.optopt("", "scope", "The scopes you want to have access to with the oauth token.", "SCOPE")
-		.optflag("x", "check", "Run quick internal check");
-
-	#[cfg(debug_assertions)]
-	opts.optflag("v", "verbose", "Enable verbose output");
+		.optflag("x", "check", "Run quick internal check")
+		.optflag("v", "verbose", "Enable verbose output");
 
 	let matches = match opts.parse(&args[1..]) {
 		Ok(m) => m,
