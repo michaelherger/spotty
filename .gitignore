@@ -1,4 +1,5 @@
 target/
+releases/
 **/*.rs.bk
 .history
 client_id.txt
