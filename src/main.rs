@@ -117,6 +117,7 @@ fn setup(args: &[String]) -> Setup {
 		.optopt("b", "bitrate", "Bitrate (96, 160 or 320). Defaults to 320.", "BITRATE")
 		.optopt("", "player-mac", "MAC address of the Squeezebox to be controlled", "MAC")
 		.optopt("", "lms", "hostname and port of Logitech Media Server instance (eg. localhost:9000)", "LMS")
+		.optopt("", "lms-auth", "Authentication data to access Logitech Media Server", "LMSAUTH")
 		.optopt("", "single-track", "Play a single track ID and exit.", "ID")
 		.optopt("", "start-position", "Position (in seconds) where playback should be started. Only valid with the --single-track option.", "STARTPOSITION")
 		.optopt("u", "username", "Username to sign in with", "USERNAME")
@@ -214,7 +215,7 @@ fn setup(args: &[String]) -> Setup {
 	let client_id = matches.opt_str("client-id")
 		.unwrap_or(format!("{}", include_str!("client_id.txt")));
 
-	let lms = LMS::new(matches.opt_str("lms"), matches.opt_str("player-mac"));
+	let lms = LMS::new(matches.opt_str("lms"), matches.opt_str("player-mac"), matches.opt_str("lms-auth"));
 
 	Setup {
 		cache: cache,

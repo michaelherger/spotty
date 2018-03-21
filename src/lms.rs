@@ -6,22 +6,24 @@ use std::str::FromStr;
 use tokio_core::reactor::Core;
 
 use hyper::{Method, Request, Uri, Client};
-use hyper::header::{ContentLength, ContentType};
+use hyper::header::{Authorization, ContentLength, ContentType};
 
 use librespot::playback::player::PlayerEvent;
 
 #[derive(Clone)]
 pub struct LMS {
 	base_url: Option<String>,
-	player_mac: Option<String>
+	player_mac: Option<String>,
+	auth: Option<String>
 }
 
 #[allow(unused)]
 impl LMS {
-	pub fn new(base_url: Option<String>, player_mac: Option<String>) -> LMS {
+	pub fn new(base_url: Option<String>, player_mac: Option<String>, auth: Option<String>) -> LMS {
 		LMS {
 			base_url: Some(format!("http://{}/jsonrpc.js", base_url.unwrap_or("localhost:9000".to_string()))),
-			player_mac: player_mac
+			player_mac: player_mac,
+			auth: auth
 		}
 	}
 
@@ -110,6 +112,11 @@ impl LMS {
 				let uri = Uri::from_str(base_url).unwrap();
 				let mut req = Request::new(Method::Post, uri);
 
+				if let Some(ref auth) = self.auth {
+					req.headers_mut().set(Authorization(format!("Basic {}", auth).to_owned()));
+				}
+
+				req.headers_mut().set_raw("X-Scanner", "1");
 				req.headers_mut().set(ContentType::json());
 				req.headers_mut().set(ContentLength(json.len() as u64));
 				req.set_body(json);
