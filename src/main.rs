@@ -1,5 +1,6 @@
 #[cfg(debug_assertions)]
 #[macro_use] extern crate log;
+extern crate crypto;
 #[cfg(debug_assertions)]
 extern crate env_logger;
 extern crate futures;
@@ -7,10 +8,11 @@ extern crate getopts;
 extern crate hyper;
 extern crate librespot;
 extern crate rpassword;
+#[macro_use]
+extern crate serde_json;
 extern crate tokio_core;
 extern crate tokio_io;
 extern crate tokio_signal;
-extern crate crypto;
 
 #[cfg(debug_assertions)]
 use env_logger::LogBuilder;
@@ -46,6 +48,11 @@ mod lms;
 use lms::LMS;
 
 const VERSION: &'static str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
+
+#[cfg(debug_assertions)]
+const DEBUGMODE: bool = true;
+#[cfg(not(debug_assertions))]
+const DEBUGMODE: bool = false;
 
 #[cfg(target_os="windows")]
 const NULLDEVICE: &'static str = "NUL";
@@ -140,6 +147,14 @@ fn setup(args: &[String]) -> Setup {
 
 	if matches.opt_present("check") {
 		println!("ok {}", VERSION.to_string());
+
+		let capabilities = json!({
+			"version": env!("CARGO_PKG_VERSION").to_string(),
+			"lms-auth": true,
+			"debug": DEBUGMODE,
+		});
+
+		println!("{}", capabilities.to_string());
 		exit(1);
 	}
 
