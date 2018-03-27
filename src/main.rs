@@ -226,6 +226,7 @@ fn setup(args: &[String]) -> Setup {
 			name: name,
 			device_type: DeviceType::Speaker,
 			volume: 0x8000 as i32,
+			linear_volume: true
 		}
 	};
 
