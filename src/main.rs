@@ -127,6 +127,7 @@ fn setup(args: &[String]) -> Setup {
 		.optopt("", "lms-auth", "Authentication data to access Logitech Media Server", "LMSAUTH")
 		.optopt("", "single-track", "Play a single track ID and exit.", "ID")
 		.optopt("", "start-position", "Position (in seconds) where playback should be started. Only valid with the --single-track option.", "STARTPOSITION")
+		.optflag("", "enable-volume-normalisation", "Play all tracks at the same volume")
 		.optopt("u", "username", "Username to sign in with", "USERNAME")
 		.optopt("p", "password", "Password", "PASSWORD")
 		.optflag("a", "authenticate", "Authenticate given username and password. Make sure you define a cache folder to store credentials.")
@@ -151,6 +152,7 @@ fn setup(args: &[String]) -> Setup {
 		let capabilities = json!({
 			"version": env!("CARGO_PKG_VERSION").to_string(),
 			"lms-auth": true,
+			"volume-normalisation": true,
 			"debug": DEBUGMODE,
 		});
 
@@ -213,7 +215,7 @@ fn setup(args: &[String]) -> Setup {
 
 		PlayerConfig {
 			bitrate: bitrate,
-			normalisation: false,
+			normalisation: matches.opt_present("enable-volume-normalisation"),
 			normalisation_pregain: PlayerConfig::default().normalisation_pregain,
 			lms_connect_mode: !matches.opt_present("single-track")
 		}
