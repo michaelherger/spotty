@@ -204,7 +204,8 @@ fn setup(args: &[String]) -> Setup {
 
 		SessionConfig {
 			user_agent: VERSION.to_string(),
-			device_id: device_id
+			device_id: device_id,
+			proxy: None
 		}
 	};
 
