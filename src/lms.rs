@@ -3,8 +3,9 @@ extern crate hyper;
 extern crate tokio_core;
 
 use std::str::FromStr;
-use tokio_core::reactor::Core;
+use tokio_core::reactor::{Handle};
 
+use futures::Future;
 use hyper::{Method, Request, Uri, Client};
 use hyper::header::{Authorization, ContentLength, ContentType};
 
@@ -37,7 +38,9 @@ impl LMS {
 		return false;
 	}
 
-	pub fn signal_event(&self, event: PlayerEvent) {
+	pub fn signal_event(&self, event: PlayerEvent, handle: Handle) {
+		let mut command = r#"["spottyconnect","change"]"#.to_string();
+
 		match event {
 			PlayerEvent::Changed {
 				old_track_id,
@@ -45,50 +48,32 @@ impl LMS {
 			} => {
 				#[cfg(debug_assertions)]
 				info!("change: spotify:track:{} -> spotify:track:{}", old_track_id.to_base62(), new_track_id.to_base62());
-				self.change();
+				command = r#"["spottyconnect","change"]"#.to_string();
 			}
 			PlayerEvent::Started { track_id } => {
 				#[cfg(debug_assertions)]
 				info!("play spotify:track:{}", track_id.to_base62());
-				self.play();
+				command = r#"["spottyconnect","start"]"#.to_string();
 			}
 			PlayerEvent::Stopped { track_id } => {
 				#[cfg(debug_assertions)]
 				info!("stop spotify:track:{}", track_id.to_base62());
-				self.stop();
+				command = r#"["spottyconnect","stop"]"#.to_string();
 			}
 			PlayerEvent::Volume { volume } => {
 				#[cfg(debug_assertions)]
 				info!("volume {}", volume);
-				self.volume(volume as u16);
+				// we're not using the volume here, as LMS will read player state anyway
+				command = format!(r#"["spottyconnect","volume",{}]"#, volume.to_string());
 			}
 			PlayerEvent::Seek { position } => {
 				#[cfg(debug_assertions)]
 				info!("seek {}", position);
-				// we're not implementing the seek event in LMS, as it's going to read player state anyway
-				self.change();
+				// we're not implementing the seek event here, as it's going to read player state anyway
+				command = r#"["spottyconnect","change"]"#.to_string();
 			}
 		}
-	}
 
-	pub fn play(&self) {
-		self.request(r#"["spottyconnect","start"]"#.to_string())
-	}
-
-	pub fn stop(&self) {
-		self.request(r#"["spottyconnect","stop"]"#.to_string())
-	}
-
-	pub fn change(&self) {
-		self.request(r#"["spottyconnect","change"]"#.to_string())
-	}
-
-	pub fn volume(&self, volume: u16) {
-		// we're not using the volume here, as LMS will read player state anyway
-		self.request(format!(r#"["spottyconnect","volume",{}]"#, volume.to_string()))
-	}
-
-	pub fn request(&self, command: String) {
 		if !self.is_configured() {
 			#[cfg(debug_assertions)]
 			info!("LMS connection is not configured");
@@ -102,8 +87,8 @@ impl LMS {
 			#[cfg(debug_assertions)]
 			info!("Player MAC address to control: {}", self.player_mac.clone().unwrap());
 			if let Some(ref player_mac) = self.player_mac {
-				let mut core = Core::new().unwrap();
-				let client = Client::new(&core.handle());
+
+				let client = Client::new(&handle);
 
 				#[cfg(debug_assertions)]
 				info!("Command to send to player: {}", command);
@@ -121,13 +106,9 @@ impl LMS {
 				req.headers_mut().set(ContentLength(json.len() as u64));
 				req.set_body(json);
 
-				let post = client.request(req);
-
 				// ugh... just send that thing and don't care about the rest...
-				match core.run(post) {
-					Ok(_) => (),
-					Err(_) => ()
-				}
+				let post = client.request(req).map(|_| ()).map_err(|_| ());
+				handle.spawn(post);
 			}
 		}
 	}

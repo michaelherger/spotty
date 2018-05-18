@@ -226,7 +226,7 @@ fn setup(args: &[String]) -> Setup {
 		ConnectConfig {
 			name: name,
 			device_type: DeviceType::Speaker,
-			volume: 0x8000 as i32,
+			volume: 0x8000 as u16,
 			linear_volume: true
 		}
 	};
@@ -404,7 +404,7 @@ impl Future for Main {
 
 			if let Some(ref mut event_channel) = self.event_channel {
 				if let Async::Ready(Some(event)) = event_channel.poll().unwrap() {
-					self.lms.signal_event(event);
+					self.lms.signal_event(event, self.handle.clone());
 				}
 			}
 
