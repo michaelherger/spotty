@@ -5,7 +5,7 @@ If only I knew... Unfortunately I never managed to get all builds working in a D
 * x86_64-unknown-linux-musl
 * i686-unknown-linux-musl
 * aarch64-unknown-linux-gnu (eg. Rock64)
-* arm-unknown-linux-gnueabihf (eg. Raspberry Pi 2+)
+* arm-unknown-linux-gnueabihf (eg. Raspberry Pi 2+ - DISABLED by default)
 
 Build the docker image from the root of the project with the following command:
 
