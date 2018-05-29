@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -eux
 
-cp -r /src/src /src/*.rs /src/Cargo.* .
-
 DESTDIR=/src/releases
 
 mkdir -p $DESTDIR/i386-linux

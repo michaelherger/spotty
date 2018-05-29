@@ -32,5 +32,5 @@ ENV CARGO_HOME /build/cache
 
 RUN mkdir /src
 
-WORKDIR /home
+WORKDIR /src
 CMD ["/src/docker/docker-build.sh"]

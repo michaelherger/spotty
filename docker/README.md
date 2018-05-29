@@ -5,7 +5,8 @@ If only I knew... Unfortunately I never managed to get all builds working in a D
 * x86_64-unknown-linux-musl
 * i686-unknown-linux-musl
 * aarch64-unknown-linux-gnu (eg. Rock64)
-* arm-unknown-linux-gnueabihf (eg. Raspberry Pi 2+ - DISABLED by default)
+* arm-unknown-linux-gnueabihf (eg. Raspberry Pi 2+ - NOT built in default script)
+* arm-unknown-linux-gnueabi (eg. Pi1 - NOT built in default script)
 
 Build the docker image from the root of the project with the following command:
 
@@ -16,17 +17,17 @@ $ docker build -t spotty-cross -f docker/Dockerfile .
 The resulting image can be used to build spotty for aforementioned platforms.
 
 ```
-$ docker run -v /tmp/spotty-build:/build -v $PWD:/src spotty-cross
+$ docker run -v ~/.spotty-build:/build -v $PWD:/src spotty-cross
 ```
-
 
 The compiled binaries will be located in a sub folder called `releases`.
 
 If only one architecture is desired, cargo can be invoked directly with the appropriate options:
 
 ```
-$ docker run -v /tmp/spotty-build:/build spotty-cross cargo build --release
-$ docker run -v /tmp/spotty-build:/build spotty-cross cargo build --release --target arm-unknown-linux-gnueabihf
-$ docker run -v /tmp/spotty-build:/build spotty-cross cargo build --release --target aarch64-unknown-linux-gnu
+$ docker run -v ~/.spotty-build:/build -v $PWD:/src spotty-cross cargo build --release
+$ docker run -v ~/.spotty-build:/build -v $PWD:/src spotty-cross cargo build --release --target arm-unknown-linux-gnueabihf
+$ docker run -v ~/.spotty-build:/build -v $PWD:/src spotty-cross cargo build --release --target aarch64-unknown-linux-gnu
 ```
-Resulting files could be found in /tmp/spotty-build and sub-folders.
+
+Resulting files could be found in ~/.spotty-build and sub-folders.
