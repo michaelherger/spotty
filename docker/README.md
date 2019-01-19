@@ -1,4 +1,4 @@
-# How to ross compile spotty
+# How to cross compile spotty
 
 If only I knew... Unfortunately I never managed to get all builds working in a Docker environment. But here we go anyway. The following targets should build successfully:
 
