@@ -8,3 +8,4 @@ t/data/
 test-data.json
 .vscode
 .vstags
+xbuild.sh
