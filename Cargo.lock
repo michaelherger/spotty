@@ -298,19 +298,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "librespot"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd#e34d97c7cedbd7bc41434b9d222a7d61e514cccd"
+source = "git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790#587b10012620f1bdaf2858769b303ac3d0a82790"
 dependencies = [
  "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "getopts 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.11.26 (registry+https://github.com/rust-lang/crates.io-index)",
- "librespot-audio 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
- "librespot-connect 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
- "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
- "librespot-metadata 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
- "librespot-playback 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
- "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
+ "librespot-audio 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
+ "librespot-connect 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
+ "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
+ "librespot-metadata 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
+ "librespot-playback 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
+ "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
  "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-bigint 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -330,13 +330,13 @@ dependencies = [
 [[package]]
 name = "librespot-audio"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd#e34d97c7cedbd7bc41434b9d222a7d61e514cccd"
+source = "git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790#587b10012620f1bdaf2858769b303ac3d0a82790"
 dependencies = [
  "bit-set 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "lewton 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
+ "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
  "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-bigint 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -347,14 +347,14 @@ dependencies = [
 [[package]]
 name = "librespot-connect"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd#e34d97c7cedbd7bc41434b9d222a7d61e514cccd"
+source = "git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790#587b10012620f1bdaf2858769b303ac3d0a82790"
 dependencies = [
  "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.11.26 (registry+https://github.com/rust-lang/crates.io-index)",
- "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
- "librespot-playback 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
- "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
+ "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
+ "librespot-playback 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
+ "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
  "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "mdns 0.2.0 (git+https://github.com/plietar/rust-mdns)",
  "num-bigint 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -371,7 +371,7 @@ dependencies = [
 [[package]]
 name = "librespot-core"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd#e34d97c7cedbd7bc41434b9d222a7d61e514cccd"
+source = "git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790#587b10012620f1bdaf2858769b303ac3d0a82790"
 dependencies = [
  "base64 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -383,7 +383,7 @@ dependencies = [
  "hyper 0.11.26 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper-proxy 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
- "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
+ "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
  "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-bigint 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-integer 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -406,12 +406,12 @@ dependencies = [
 [[package]]
 name = "librespot-metadata"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd#e34d97c7cedbd7bc41434b9d222a7d61e514cccd"
+source = "git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790#587b10012620f1bdaf2858769b303ac3d0a82790"
 dependencies = [
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
- "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
- "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
+ "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
+ "librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
  "linear-map 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -419,20 +419,20 @@ dependencies = [
 [[package]]
 name = "librespot-playback"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd#e34d97c7cedbd7bc41434b9d222a7d61e514cccd"
+source = "git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790#587b10012620f1bdaf2858769b303ac3d0a82790"
 dependencies = [
  "byteorder 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
- "librespot-audio 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
- "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
- "librespot-metadata 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
+ "librespot-audio 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
+ "librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
+ "librespot-metadata 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
  "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "librespot-protocol"
 version = "0.1.0"
-source = "git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd#e34d97c7cedbd7bc41434b9d222a7d61e514cccd"
+source = "git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790#587b10012620f1bdaf2858769b303ac3d0a82790"
 dependencies = [
  "protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -861,13 +861,13 @@ dependencies = [
 
 [[package]]
 name = "spotty"
-version = "0.12.1"
+version = "0.12.2"
 dependencies = [
  "env_logger 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "getopts 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.11.26 (registry+https://github.com/rust-lang/crates.io-index)",
- "librespot 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)",
+ "librespot 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)",
  "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "rpassword 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust-crypto 0.2.36 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1256,13 +1256,13 @@ dependencies = [
 "checksum lazycell 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a6f08839bc70ef4a3fe1d566d5350f519c5912ea86be0df1740a7d247c7fc0ef"
 "checksum lewton 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3d170da25c0b3541e3260f84aa8f9d323468083bd1ed6c4c15aec7ff33e2a1c4"
 "checksum libc 0.2.36 (registry+https://github.com/rust-lang/crates.io-index)" = "1e5d97d6708edaa407429faa671b942dc0f2727222fb6b6539bf1db936e4b121"
-"checksum librespot 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)" = "<none>"
-"checksum librespot-audio 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)" = "<none>"
-"checksum librespot-connect 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)" = "<none>"
-"checksum librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)" = "<none>"
-"checksum librespot-metadata 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)" = "<none>"
-"checksum librespot-playback 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)" = "<none>"
-"checksum librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=e34d97c7cedbd7bc41434b9d222a7d61e514cccd)" = "<none>"
+"checksum librespot 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)" = "<none>"
+"checksum librespot-audio 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)" = "<none>"
+"checksum librespot-connect 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)" = "<none>"
+"checksum librespot-core 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)" = "<none>"
+"checksum librespot-metadata 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)" = "<none>"
+"checksum librespot-playback 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)" = "<none>"
+"checksum librespot-protocol 0.1.0 (git+https://github.com/michaelherger/librespot.git?rev=587b10012620f1bdaf2858769b303ac3d0a82790)" = "<none>"
 "checksum linear-map 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bfae20f6b19ad527b550c223fddc3077a547fc70cda94b9b566575423fd303ee"
 "checksum log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)" = "e19e8d5c34a3e0e2223db8e060f9e8264aeeb5c5fc64a4ee9965c062211c024b"
 "checksum log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "89f010e843f2b1a31dbd316b3b8d443758bc634bed37aabade59c686d644e0a2"
