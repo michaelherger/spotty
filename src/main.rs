@@ -38,7 +38,7 @@ use librespot::core::session::Session;
 use librespot::playback::audio_backend::{self};
 use librespot::playback::config::{Bitrate, PlayerConfig};
 use librespot::connect::discovery::{discovery, DiscoveryStream};
-use librespot::playback::mixer::{self};
+use librespot::playback::mixer::{self, MixerConfig};
 use librespot::playback::player::{Player, PlayerEvent};
 use librespot::connect::spirc::{Spirc, SpircTask};
 
@@ -122,6 +122,7 @@ fn setup(args: &[String]) -> Setup {
 		.optflag("", "disable-audio-cache", "(Only here fore compatibility with librespot - audio cache is disabled by default).")
 		.reqopt("n", "name", "Device name", "NAME")
 		.optopt("b", "bitrate", "Bitrate (96, 160 or 320). Defaults to 320.", "BITRATE")
+		.optflag("", "pass-through", "Pass raw OGG stream to output")
 		.optopt("", "player-mac", "MAC address of the Squeezebox to be controlled", "MAC")
 		.optopt("", "lms", "hostname and port of Logitech Media Server instance (eg. localhost:9000)", "LMS")
 		.optopt("", "lms-auth", "Authentication data to access Logitech Media Server", "LMSAUTH")
@@ -213,6 +214,8 @@ fn setup(args: &[String]) -> Setup {
 		}
 	};
 
+	let pass_through = matches.opt_present("pass-through");
+
 	let player_config = {
 		let bitrate = matches.opt_str("b").as_ref()
 				.map(|bitrate| Bitrate::from_str(bitrate).expect("Invalid bitrate"))
@@ -222,6 +225,7 @@ fn setup(args: &[String]) -> Setup {
 			bitrate: bitrate,
 			normalisation: matches.opt_present("enable-volume-normalisation"),
 			normalisation_pregain: PlayerConfig::default().normalisation_pregain,
+			pass_through: pass_through,
 			lms_connect_mode: !matches.opt_present("single-track")
 		}
 	};
@@ -366,7 +370,13 @@ impl Future for Main {
 					let player_config = self.player_config.clone();
 					let connect_config = self.connect_config.clone();
 
-					let mixer = (mixer::find(Some("softvol")).unwrap())();
+					let mixer_config = MixerConfig {
+						card: String::from("default"),
+						mixer: String::from("PCM"),
+						index: 0,
+					};
+
+					let mixer = (mixer::find(Some("softvol")).unwrap())(Some(mixer_config));
 
 					let audio_filter = mixer.get_audio_filter();
 					let backend = audio_backend::find(None).unwrap();
