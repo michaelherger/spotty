@@ -23,7 +23,7 @@ tokio-signal = "0.1.2"
 
 [dependencies.librespot]
 git = "https://github.com/michaelherger/librespot.git"
-rev = "8abbb7378be4c2d607003605182a35b716398810"
+rev = "03e401bfd643f4f6f489a53715aef85cee970002"
 #path = "../librespot"
 default-features = false
 # enable the following for macOS <= 10.9 compatibility
