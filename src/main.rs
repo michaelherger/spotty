@@ -156,6 +156,7 @@ fn setup(args: &[String]) -> Setup {
 			"lms-auth": true,
 			"volume-normalisation": true,
 			"debug": DEBUGMODE,
+			"ogg-direct": true
 		});
 
 		println!("{}", capabilities.to_string());
