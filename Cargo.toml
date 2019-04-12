@@ -1,6 +1,6 @@
 [package]
 name = "spotty"
-version = "0.13.0"
+version = "0.20.0"
 authors = ["Michael Herger <michael@herger.net>"]
 
 [[bin]]
@@ -23,7 +23,7 @@ tokio-signal = "0.1.2"
 
 [dependencies.librespot]
 git = "https://github.com/michaelherger/librespot.git"
-rev = "45d8d0db180410f7c7547c2a928ccabe54bf5c10"
+rev = "03e401bfd643f4f6f489a53715aef85cee970002"
 #path = "../librespot"
 default-features = false
 # enable the following for macOS <= 10.9 compatibility
