@@ -15,7 +15,6 @@ extern crate tokio_io;
 extern crate tokio_signal;
 
 #[cfg(debug_assertions)]
-use env_logger::LogBuilder;
 use futures::{Future, Async, Poll, Stream};
 use futures::sync::mpsc::UnboundedReceiver;
 #[cfg(debug_assertions)]
@@ -74,11 +73,11 @@ fn usage(program: &str, opts: &getopts::Options) -> String {
 
 #[cfg(debug_assertions)]
 fn setup_logging(verbose: bool) {
-	let mut builder = LogBuilder::new();
+	let mut builder = env_logger::Builder::new();
 	match env::var("RUST_LOG") {
 		Ok(config) => {
-			builder.parse(&config);
-			builder.init().unwrap();
+			builder.parse_filters(&config);
+			builder.init();
 
 			if verbose {
 				warn!("`--verbose` flag overidden by `RUST_LOG` environment variable");
@@ -86,11 +85,11 @@ fn setup_logging(verbose: bool) {
 		}
 		Err(_) => {
 			if verbose {
-				builder.parse("mdns=info,librespot=debug,spotty=info");
+				builder.parse_filters("mdns=info,librespot=debug,spotty=info");
 			} else {
-				builder.parse("mdns=error,librespot=warn,spotty=error");
+				builder.parse_filters("mdns=error,librespot=warn,spotty=error");
 			}
-			builder.init().unwrap();
+			builder.init();
 		}
 	}
 }

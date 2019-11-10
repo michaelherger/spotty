@@ -9,7 +9,7 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-env_logger = "0.4.0"
+env_logger = "0.6.1"
 hyper = "0.11.2"
 rust-crypto = "0.2.36"
 futures = "0.1.8"
