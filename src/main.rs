@@ -301,7 +301,7 @@ impl Main {
 
 			shutdown: false,
 			authenticate: setup.authenticate,
-			signal: Box::new(tokio_signal::ctrl_c(&handle).flatten_stream()),
+			signal: Box::new(tokio_signal::ctrl_c().flatten_stream()),
 
 			event_channel: None,
 			lms: setup.lms
