@@ -48,12 +48,12 @@ impl LMS {
 			} => {
 				#[cfg(debug_assertions)]
 				info!("change: spotify:track:{} -> spotify:track:{}", old_track_id.to_base62(), new_track_id.to_base62());
-				command = r#"["spottyconnect","change"]"#.to_string();
+				command = format!(r#"["spottyconnect","change","{}","{}"]"#, new_track_id.to_base62().to_string(), old_track_id.to_base62().to_string());
 			}
 			PlayerEvent::Started { track_id } => {
 				#[cfg(debug_assertions)]
 				info!("play spotify:track:{}", track_id.to_base62());
-				command = r#"["spottyconnect","start"]"#.to_string();
+				command = format!(r#"["spottyconnect","start","{}"]"#, track_id.to_base62().to_string());
 			}
 			PlayerEvent::Stopped { track_id } => {
 				#[cfg(debug_assertions)]
