@@ -1,6 +1,6 @@
 [package]
 name = "spotty"
-version = "0.29.9"
+version = "0.30.0"
 authors = ["Michael Herger <michael@herger.net>"]
 
 [[bin]]
@@ -22,9 +22,9 @@ tokio-io = "0.1"
 tokio-signal = "0.2"
 
 [dependencies.librespot]
-#git = "https://github.com/michaelherger/librespot.git"
-#rev = "03e401bfd643f4f6f489a53715aef85cee970002"
-path = "../librespot"
+git = "https://github.com/michaelherger/librespot.git"
+rev = "8c2bd4e0e2323ee1f835d28a6aa9ede700e7497c"
+#path = "../librespot"
 default-features = false
 # enable the following for macOS <= 10.9 compatibility
 #features = ["with-tremor","with-lewton"]
