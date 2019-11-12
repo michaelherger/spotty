@@ -14,7 +14,6 @@ extern crate tokio_core;
 extern crate tokio_io;
 extern crate tokio_signal;
 
-#[cfg(debug_assertions)]
 use futures::{Future, Async, Poll, Stream};
 use futures::sync::mpsc::UnboundedReceiver;
 #[cfg(debug_assertions)]
@@ -155,7 +154,8 @@ fn setup(args: &[String]) -> Setup {
 			"lms-auth": true,
 			"volume-normalisation": true,
 			"debug": DEBUGMODE,
-			"ogg-direct": true
+			"ogg-direct": true,
+			"podcasts": true
 		});
 
 		println!("{}", capabilities.to_string());
@@ -441,11 +441,9 @@ fn main() {
 			Some(credentials) => {
 				let backend = audio_backend::find(None).unwrap();
 
-				let track = SpotifyId::from_base62(
-									track_id.replace("spotty://", "")
-									.replace("spotify://", "")
-									.replace("spotify:", "")
-									.replace("track:", "")
+				let track = SpotifyId::from_uri(
+									track_id.replace("spotty://", "spotify:")
+									.replace("://", ":")
 									.as_str());
 
 				let session = core.run(Session::connect(session_config.clone(), credentials, cache.clone(), handle)).unwrap();
