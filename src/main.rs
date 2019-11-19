@@ -18,6 +18,7 @@ use futures::{Future, Async, Poll, Stream};
 use futures::sync::mpsc::UnboundedReceiver;
 #[cfg(debug_assertions)]
 use std::env;
+use std::fs::File;
 use std::io::{self, stderr, Write};
 use std::path::PathBuf;
 use std::process::exit;
@@ -105,6 +106,7 @@ struct Setup {
 	authenticate: bool,
 
 	get_token: bool,
+	save_token: Option<String>,
 	client_id: Option<String>,
 	scope: Option<String>,
 
@@ -132,7 +134,8 @@ fn setup(args: &[String]) -> Setup {
 		.optflag("a", "authenticate", "Authenticate given username and password. Make sure you define a cache folder to store credentials.")
 		.optopt("", "ap-port", "Connect to AP with specified port. If no AP with that port are present fallback AP will be used. Available ports are usually 80, 443 and 4070", "AP_PORT")
 		.optflag("", "disable-discovery", "Disable discovery mode")
-		.optflag("t", "get-token", "Get oauth token to be used with the web API etc.")
+		.optflag("t", "get-token", "Get oauth token to be used with the web API etc. and print it to the console.")
+		.optopt("T", "save-token", "Get oauth token to be used with the web API etc. and store it in the given file.", "TOKENFILE")
 		.optopt("i", "client-id", "A Spotify client_id to be used to get the oauth token. Required with the --get-token request.", "CLIENT_ID")
 		.optopt("", "scope", "The scopes you want to have access to with the oauth token.", "SCOPE")
 		.optflag("x", "check", "Run quick internal check")
@@ -155,6 +158,7 @@ fn setup(args: &[String]) -> Setup {
 			"volume-normalisation": true,
 			"debug": DEBUGMODE,
 			"ogg-direct": true,
+			"save-token": true,
 			"podcasts": true
 		});
 
@@ -242,6 +246,8 @@ fn setup(args: &[String]) -> Setup {
 	let client_id = matches.opt_str("client-id")
 		.unwrap_or(format!("{}", include_str!("client_id.txt")));
 
+	let save_token = matches.opt_str("save-token").unwrap();
+
 	let lms = LMS::new(matches.opt_str("lms"), matches.opt_str("player-mac"), matches.opt_str("lms-auth"));
 
 	Setup {
@@ -253,7 +259,9 @@ fn setup(args: &[String]) -> Setup {
 		authenticate: authenticate,
 		enable_discovery: enable_discovery,
 
-		get_token: matches.opt_present("get-token"),
+		get_token: matches.opt_present("get-token") || save_token.as_str().len() != 0,
+		save_token: if save_token.as_str().len() == 0 { None } else { Some(save_token) },
+
 		client_id: if client_id.as_str().len() == 0 { None } else { Some(client_id) },
 		scope: matches.opt_str("scope"),
 
@@ -434,7 +442,22 @@ fn main() {
 	let handle = core.handle();
 
 	let args: Vec<String> = std::env::args().collect();
-	let Setup { cache, session_config, player_config, connect_config, credentials, authenticate, enable_discovery, get_token, client_id, scope, single_track, start_position, lms } = setup(&args.clone());
+	let Setup {
+		cache,
+		session_config,
+		player_config,
+		connect_config,
+		credentials,
+		authenticate,
+		enable_discovery,
+		get_token,
+		save_token,
+		client_id,
+		scope,
+		single_track,
+		start_position,
+		lms
+	} = setup(&args.clone());
 
 	if let Some(ref track_id) = single_track {
 		match credentials {
@@ -470,7 +493,14 @@ fn main() {
 			let result = core.run(Box::new(session.mercury().get(url).map(move |response| {
 				let data = response.payload.first().expect("Empty payload");
 				let token = String::from_utf8(data.clone()).unwrap();
-				println!("{}", token);
+
+				if let Some(save_token) = save_token {
+					let mut file = File::create(save_token.to_string()).expect("Can't create token file");
+					file.write(&token.clone().into_bytes()).expect("Can't write token file");
+				}
+				else {
+					println!("{}", token);
+				}
 			})));
 
 			match result {
@@ -483,7 +513,22 @@ fn main() {
 		}
 	}
 	else {
-		core.run(Main::new(handle, Setup { cache, session_config, player_config, connect_config, credentials, authenticate, enable_discovery, get_token, client_id, scope, single_track, start_position, lms })).unwrap()
+		core.run(Main::new(handle, Setup {
+			cache,
+			session_config,
+			player_config,
+			connect_config,
+			credentials,
+			authenticate,
+			enable_discovery,
+			get_token,
+			save_token,
+			client_id,
+			scope,
+			single_track,
+			start_position,
+			lms
+		})).unwrap()
 	}
 }
 
