@@ -246,7 +246,7 @@ fn setup(args: &[String]) -> Setup {
 	let client_id = matches.opt_str("client-id")
 		.unwrap_or(format!("{}", include_str!("client_id.txt")));
 
-	let save_token = matches.opt_str("save-token").unwrap();
+	let save_token = matches.opt_str("save-token").unwrap_or("".to_string());
 
 	let lms = LMS::new(matches.opt_str("lms"), matches.opt_str("player-mac"), matches.opt_str("lms-auth"));
 
