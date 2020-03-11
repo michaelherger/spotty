@@ -1,7 +1,3 @@
-extern crate futures;
-extern crate hyper;
-extern crate tokio_core;
-
 use std::str::FromStr;
 use tokio_core::reactor::{Handle};
 
