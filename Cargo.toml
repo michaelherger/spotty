@@ -25,7 +25,7 @@ hex = "0.3.2"
 
 [dependencies.librespot]
 git = "https://github.com/michaelherger/librespot.git"
-rev = "b04abe2a8f7de8d6d9330768af064e3c445c55be"
+rev = "08a5f677d87696b9079c5a7bb880753a0283c07f"
 #path = "../librespot"
 default-features = false
 # enable the following for macOS <= 10.9 compatibility

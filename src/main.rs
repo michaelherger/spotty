@@ -135,7 +135,6 @@ fn setup(args: &[String]) -> Setup {
             "enable-volume-normalisation",
             "Play all tracks at the same volume",
         )
-        .optflag("", "pass-through", "Pass raw OGG stream to output")
         .optopt("", "player-mac", "MAC address of the Squeezebox to be controlled", "MAC")
         .optopt("", "lms", "hostname and port of Logitech Media Server instance (eg. localhost:9000)", "LMS")
         .optopt("", "lms-auth", "Authentication data to access Logitech Media Server", "LMSAUTH")
@@ -170,7 +169,6 @@ fn setup(args: &[String]) -> Setup {
             "lms-auth": true,
             "volume-normalisation": true,
             "debug": DEBUGMODE,
-            "ogg-direct": true,
             "save-token": true,
             "podcasts": true,
             "zeroconf-port": true
@@ -236,8 +234,6 @@ fn setup(args: &[String]) -> Setup {
         }
     };
 
-    let pass_through = matches.opt_present("pass-through");
-
     let player_config = {
         let bitrate = matches
             .opt_str("b")
@@ -249,7 +245,6 @@ fn setup(args: &[String]) -> Setup {
             bitrate: bitrate,
             normalisation: matches.opt_present("enable-volume-normalisation"),
             normalisation_pregain: PlayerConfig::default().normalisation_pregain,
-            pass_through: pass_through,
             lms_connect_mode: !matches.opt_present("single-track")
         }
     };
