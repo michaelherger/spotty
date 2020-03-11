@@ -454,6 +454,7 @@ impl Future for Main {
                     if self.shutdown {
                         return Ok(Async::Ready(()));
                     } else {
+#[cfg(debug_assertions)]
                         warn!("Spirc shut down unexpectedly");
                         drop_spirc_and_try_to_reconnect = true;
                     }
@@ -470,6 +471,7 @@ impl Future for Main {
 
                 if let Some(credentials) = self.last_credentials.clone() {
                     if self.auto_connect_times.len() >= 5 {
+#[cfg(debug_assertions)]
                         warn!("Spirc shut down too often. Not reconnecting automatically.");
                     } else {
                         self.auto_connect_times.push(Instant::now());
@@ -492,7 +494,8 @@ impl Future for Main {
 }
 
 fn main() {
-    if env::var("RUST_BACKTRACE").is_err() {
+    if std::env::var("RUST_BACKTRACE").is_err() {
+#[cfg(debug_assertions)]
         env::set_var("RUST_BACKTRACE", "full")
     }
     let mut core = Core::new().unwrap();
