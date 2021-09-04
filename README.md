@@ -1,6 +1,15 @@
 # spotty
-*spotty* is an open source client application for Spotify. It's based on and using 
-[librespot](https://github.com/librespot-org/librespot). It basically is a stripped 
+
+## This repository is discontinued
+
+:exclamation: ***Please note that this repository is no longer maintained***. I continue development of the `spotty` helper application as a fork of [librespot](https://github.com/librespot-org/librespot). Head over to [https://github.com/michaelherger/librespot](https://github.com/michaelherger/librespot) and check out the `spotty` branch. :exclamation:
+
+Feel free to continue reading... but the below information is outdated and obsolete.
+
+## Introduction
+
+*spotty* is an open source client application for Spotify. It's based on and using
+[librespot](https://github.com/librespot-org/librespot). It basically is a stripped
 down and slightly customized version of the librespot sample application.
 
 *spotty* has been tweaked to enable interaction with the [Logitech Media Server](https://github.com/Logitech/slimserver).
